@@ -1,5 +1,4 @@
 using HoverText.Core.Probing;
-using HoverText.Core.Settings;
 
 namespace HoverText.Core.Overlay;
 
@@ -7,6 +6,8 @@ public static class OverlayTextSizing
 {
     private const int TargetTextWidth = 688;
     private const double TargetLineCount = 1.45;
+    private const double MinimumAdaptiveTextFontSize = 48;
+    private const double MaximumAdaptiveTextFontSize = 56;
 
     public static double CalculateFontSize(int configuredFontSize, string text, ProbeDisplayKind displayKind)
     {
@@ -20,20 +21,24 @@ public static class OverlayTextSizing
             return configuredFontSize;
         }
 
+        double adaptiveBaseFontSize = Math.Clamp(
+            configuredFontSize,
+            MinimumAdaptiveTextFontSize,
+            MaximumAdaptiveTextFontSize);
         double estimatedUnits = text.Sum(EstimateCharacterUnits);
         if (estimatedUnits <= 0)
         {
-            return configuredFontSize;
+            return adaptiveBaseFontSize;
         }
 
-        double maxUnits = TargetTextWidth / configuredFontSize * TargetLineCount;
+        double maxUnits = TargetTextWidth / adaptiveBaseFontSize * TargetLineCount;
         if (estimatedUnits <= maxUnits)
         {
-            return configuredFontSize;
+            return adaptiveBaseFontSize;
         }
 
-        double scaledFontSize = configuredFontSize * maxUnits / estimatedUnits;
-        return Math.Max(HoverTextSettings.MinimumFontSize, Math.Floor(scaledFontSize));
+        double scaledFontSize = adaptiveBaseFontSize * maxUnits / estimatedUnits;
+        return Math.Max(MinimumAdaptiveTextFontSize, Math.Floor(scaledFontSize));
     }
 
     private static double EstimateCharacterUnits(char character)

@@ -1,6 +1,5 @@
 using HoverText.Core.Overlay;
 using HoverText.Core.Probing;
-using HoverText.Core.Settings;
 
 namespace HoverText.Tests;
 
@@ -16,7 +15,7 @@ public sealed class OverlayTextSizingTests
     }
 
     [TestMethod]
-    public void CalculateFontSize_shrinks_long_text_without_going_below_minimum()
+    public void CalculateFontSize_shrinks_long_text_within_adaptive_range()
     {
         double fontSize = OverlayTextSizing.CalculateFontSize(
             56,
@@ -24,7 +23,26 @@ public sealed class OverlayTextSizingTests
             ProbeDisplayKind.Text);
 
         Assert.IsTrue(fontSize < 56);
-        Assert.IsTrue(fontSize >= HoverTextSettings.MinimumFontSize);
+        Assert.IsTrue(fontSize >= 48);
+    }
+
+    [TestMethod]
+    public void CalculateFontSize_does_not_shrink_ordinary_text_below_48()
+    {
+        double fontSize = OverlayTextSizing.CalculateFontSize(
+            56,
+            string.Concat(Enumerable.Repeat("扶绥县就业信息化平台报价表0324.xlsx", 4)),
+            ProbeDisplayKind.Text);
+
+        Assert.AreEqual(48, fontSize);
+    }
+
+    [TestMethod]
+    public void CalculateFontSize_caps_ordinary_text_at_56()
+    {
+        double fontSize = OverlayTextSizing.CalculateFontSize(72, "设置", ProbeDisplayKind.Text);
+
+        Assert.AreEqual(56, fontSize);
     }
 
     [TestMethod]

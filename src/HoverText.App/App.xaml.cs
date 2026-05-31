@@ -41,7 +41,9 @@ public partial class App : System.Windows.Application
 
         var overlay = new OverlayWindow();
         var automation = new UiAutomationTextProbeSource();
-        var ocr = new TesseractCliOcrTextProbeSource();
+        var ocr = new CompositeTextProbeSource(
+            new WindowsOcrTextProbeSource(),
+            new TesseractCliOcrTextProbeSource());
         var magnifier = new ScreenMagnifierFallback();
         var pipeline = new TextProbePipeline(automation, ocr, magnifier);
 

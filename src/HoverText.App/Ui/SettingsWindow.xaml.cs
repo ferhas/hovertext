@@ -30,6 +30,7 @@ public partial class SettingsWindow : Window
         ForegroundBox.Text = value.Foreground;
         BackgroundBox.Text = value.Background;
         OcrBox.IsChecked = value.IsOcrEnabled;
+        MagnifierBox.IsChecked = value.IsMagnifierEnabled;
         StartupBox.IsChecked = value.StartWithWindows;
         UpdateSliderLabels();
         UpdateTriggerButtons();
@@ -45,6 +46,7 @@ public partial class SettingsWindow : Window
             Foreground = ForegroundBox.Text,
             Background = BackgroundBox.Text,
             IsOcrEnabled = OcrBox.IsChecked == true,
+            IsMagnifierEnabled = MagnifierBox.IsChecked == true,
             StartWithWindows = StartupBox.IsChecked == true
         };
 

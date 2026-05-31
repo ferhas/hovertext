@@ -149,6 +149,34 @@ public sealed class TextProbePipelineTests
         Assert.AreEqual(1, magnifier.Calls);
     }
 
+    [TestMethod]
+    public async Task ProbeAsync_returns_empty_without_magnifier_when_magnifier_is_disabled()
+    {
+        var automation = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.UiAutomation));
+        var ocr = new RecordingTextProbeSource(TextProbeResult.Found("OCR fallback", ProbeSource.Ocr));
+        var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 2.0));
+        int beforeMagnifierCalls = 0;
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier, () =>
+        {
+            beforeMagnifierCalls++;
+            return Task.CompletedTask;
+        });
+        HoverTextSettings settings = HoverTextSettings.CreateDefault() with
+        {
+            IsOcrEnabled = false,
+            IsMagnifierEnabled = false
+        };
+
+        ProbeResult result = await pipeline.ProbeAsync(new PointerPoint(32, 64), settings);
+
+        Assert.AreEqual(ProbeSource.None, result.Source);
+        Assert.AreEqual(ProbeDisplayKind.Empty, result.DisplayKind);
+        Assert.AreEqual(1, automation.Calls);
+        Assert.AreEqual(0, ocr.Calls);
+        Assert.AreEqual(0, beforeMagnifierCalls);
+        Assert.AreEqual(0, magnifier.Calls);
+    }
+
     private sealed class RecordingTextProbeSource(TextProbeResult result) : ITextProbeSource
     {
         public int Calls { get; private set; }

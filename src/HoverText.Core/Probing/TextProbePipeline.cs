@@ -29,6 +29,11 @@ public sealed class TextProbePipeline(
             }
         }
 
+        if (!settings.IsMagnifierEnabled)
+        {
+            return ProbeResult.Empty();
+        }
+
         if (beforeMagnifierCaptureAsync is not null)
         {
             await beforeMagnifierCaptureAsync();

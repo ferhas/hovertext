@@ -21,6 +21,8 @@ public sealed record HoverTextSettings
 
     public bool IsOcrEnabled { get; init; }
 
+    public bool IsMagnifierEnabled { get; init; }
+
     public bool StartWithWindows { get; init; }
 
     public static HoverTextSettings CreateDefault()
@@ -33,6 +35,7 @@ public sealed record HoverTextSettings
             Background = "#111827",
             PollIntervalMilliseconds = 150,
             IsOcrEnabled = true,
+            IsMagnifierEnabled = true,
             StartWithWindows = false
         };
     }

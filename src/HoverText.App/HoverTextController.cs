@@ -52,6 +52,11 @@ public sealed class HoverTextController : IDisposable
     {
         settings = updatedSettings;
         timer.Interval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds);
+        if (!settings.IsMagnifierEnabled)
+        {
+            ClearMagnifierCache();
+            overlayWindow.Hide();
+        }
     }
 
     public void Dispose()
@@ -71,6 +76,7 @@ public sealed class HoverTextController : IDisposable
         if (!triggerReader.IsPressed(settings.TriggerKey))
         {
             overlayWindow.Hide();
+            ClearMagnifierCache();
             return;
         }
 
@@ -78,7 +84,8 @@ public sealed class HoverTextController : IDisposable
         try
         {
             PointerPoint point = cursorProvider.GetCursorPosition();
-            if (cachedMagnifierResult is not null
+            if (settings.IsMagnifierEnabled
+                && cachedMagnifierResult is not null
                 && cachedMagnifierFrame is not null
                 && !MagnifierRefreshPolicy.ShouldCapture(point, cachedMagnifierFrame, ElapsedSinceStart()))
             {
@@ -94,8 +101,13 @@ public sealed class HoverTextController : IDisposable
             }
             else
             {
-                cachedMagnifierResult = null;
-                cachedMagnifierFrame = null;
+                ClearMagnifierCache();
+            }
+
+            if (result.DisplayKind == ProbeDisplayKind.Empty || result.Source == ProbeSource.None)
+            {
+                overlayWindow.Hide();
+                return;
             }
 
             overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
@@ -103,11 +115,18 @@ public sealed class HoverTextController : IDisposable
         catch
         {
             overlayWindow.Hide();
+            ClearMagnifierCache();
         }
         finally
         {
             isTicking = false;
         }
+    }
+
+    private void ClearMagnifierCache()
+    {
+        cachedMagnifierResult = null;
+        cachedMagnifierFrame = null;
     }
 
     private TimeSpan ElapsedSinceStart()

@@ -23,6 +23,8 @@ public sealed record HoverTextSettings
 
     public bool IsMagnifierEnabled { get; init; }
 
+    public bool IsHoverTypingEnabled { get; init; }
+
     public bool StartWithWindows { get; init; }
 
     public static HoverTextSettings CreateDefault()
@@ -36,6 +38,7 @@ public sealed record HoverTextSettings
             PollIntervalMilliseconds = 150,
             IsOcrEnabled = true,
             IsMagnifierEnabled = true,
+            IsHoverTypingEnabled = true,
             StartWithWindows = false
         };
     }

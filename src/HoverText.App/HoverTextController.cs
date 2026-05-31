@@ -12,6 +12,7 @@ public sealed class HoverTextController : IDisposable
 {
     private readonly OverlayWindow overlayWindow;
     private readonly TextProbePipeline pipeline;
+    private readonly IFocusedInputProbeSource focusedInputProbe;
     private readonly ScreenMagnifierFallback magnifier;
     private readonly KeyboardTriggerReader triggerReader;
     private readonly CursorPositionProvider cursorProvider;
@@ -25,6 +26,7 @@ public sealed class HoverTextController : IDisposable
     public HoverTextController(
         OverlayWindow overlayWindow,
         TextProbePipeline pipeline,
+        IFocusedInputProbeSource focusedInputProbe,
         ScreenMagnifierFallback magnifier,
         KeyboardTriggerReader triggerReader,
         CursorPositionProvider cursorProvider,
@@ -32,6 +34,7 @@ public sealed class HoverTextController : IDisposable
     {
         this.overlayWindow = overlayWindow;
         this.pipeline = pipeline;
+        this.focusedInputProbe = focusedInputProbe;
         this.magnifier = magnifier;
         this.triggerReader = triggerReader;
         this.cursorProvider = cursorProvider;
@@ -52,7 +55,7 @@ public sealed class HoverTextController : IDisposable
     {
         settings = updatedSettings;
         timer.Interval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds);
-        if (!settings.IsMagnifierEnabled)
+        if (!settings.IsMagnifierEnabled || !settings.IsHoverTypingEnabled)
         {
             ClearMagnifierCache();
             overlayWindow.Hide();
@@ -73,17 +76,16 @@ public sealed class HoverTextController : IDisposable
             return;
         }
 
-        if (!triggerReader.IsPressed(settings.TriggerKey))
-        {
-            overlayWindow.Hide();
-            ClearMagnifierCache();
-            return;
-        }
-
         isTicking = true;
         try
         {
             PointerPoint point = cursorProvider.GetCursorPosition();
+            if (!triggerReader.IsPressed(settings.TriggerKey))
+            {
+                await ShowFocusedInputWithoutTrigger(point);
+                return;
+            }
+
             if (settings.IsMagnifierEnabled
                 && cachedMagnifierResult is not null
                 && cachedMagnifierFrame is not null
@@ -132,5 +134,19 @@ public sealed class HoverTextController : IDisposable
     private TimeSpan ElapsedSinceStart()
     {
         return DateTime.UtcNow - startedAt;
+    }
+
+    private async Task ShowFocusedInputWithoutTrigger(PointerPoint point)
+    {
+        ClearMagnifierCache();
+        TextProbeResult textResult = await focusedInputProbe.TryReadFocusedInputAsync();
+        ProbeResult result = ProbeResult.FromText(textResult);
+        if (!HoverTypingPolicy.ShouldShowWithoutTrigger(settings, result))
+        {
+            overlayWindow.Hide();
+            return;
+        }
+
+        overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
     }
 }

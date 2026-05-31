@@ -20,7 +20,7 @@ public sealed class JsonSettingsStore(string path)
         HoverTextSettings? settings = JsonSerializer.Deserialize<HoverTextSettings>(json, Options);
         return Normalize(
             settings ?? HoverTextSettings.CreateDefault(),
-            HasProperty(json, nameof(HoverTextSettings.IsMagnifierEnabled)));
+            GetPropertyNames(json));
     }
 
     public async Task SaveAsync(HoverTextSettings settings, CancellationToken cancellationToken = default)
@@ -35,7 +35,7 @@ public sealed class JsonSettingsStore(string path)
         await JsonSerializer.SerializeAsync(stream, settings, Options, cancellationToken);
     }
 
-    private static HoverTextSettings Normalize(HoverTextSettings settings, bool hasMagnifierSetting)
+    private static HoverTextSettings Normalize(HoverTextSettings settings, IReadOnlySet<string> propertyNames)
     {
         HoverTextSettings defaults = HoverTextSettings.CreateDefault();
         if (settings.FontSize < defaults.FontSize)
@@ -43,15 +43,30 @@ public sealed class JsonSettingsStore(string path)
             settings = settings with { FontSize = defaults.FontSize };
         }
 
-        return hasMagnifierSetting
-            ? settings
-            : settings with { IsMagnifierEnabled = defaults.IsMagnifierEnabled };
+        if (!propertyNames.Contains(nameof(HoverTextSettings.IsMagnifierEnabled)))
+        {
+            settings = settings with { IsMagnifierEnabled = defaults.IsMagnifierEnabled };
+        }
+
+        if (!propertyNames.Contains(nameof(HoverTextSettings.IsHoverTypingEnabled)))
+        {
+            settings = settings with { IsHoverTypingEnabled = defaults.IsHoverTypingEnabled };
+        }
+
+        return settings;
     }
 
-    private static bool HasProperty(string json, string propertyName)
+    private static HashSet<string> GetPropertyNames(string json)
     {
         using JsonDocument document = JsonDocument.Parse(json);
-        return document.RootElement.ValueKind == JsonValueKind.Object
-            && document.RootElement.TryGetProperty(propertyName, out _);
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
+        {
+            return [];
+        }
+
+        return document.RootElement
+            .EnumerateObject()
+            .Select(property => property.Name)
+            .ToHashSet(StringComparer.Ordinal);
     }
 }

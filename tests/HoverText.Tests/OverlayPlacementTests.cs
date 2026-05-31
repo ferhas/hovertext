@@ -32,4 +32,30 @@ public sealed class OverlayPlacementTests
         Assert.AreEqual(116, placement.Left);
         Assert.AreEqual(136, placement.Top);
     }
+
+    [TestMethod]
+    public void PlaceNearAnchor_prefers_above_centered_on_input_when_there_is_room()
+    {
+        var input = new PixelRect(600, 500, 360, 48);
+        var overlaySize = new PixelSize(520, 140);
+        var workArea = new PixelRect(0, 0, 1920, 1080);
+
+        PixelRect placement = OverlayPlacement.PlaceNearAnchor(input, overlaySize, workArea, margin: 8, offset: 14);
+
+        Assert.AreEqual(520, placement.Left);
+        Assert.AreEqual(346, placement.Top);
+    }
+
+    [TestMethod]
+    public void PlaceNearAnchor_moves_below_input_when_top_space_is_tight()
+    {
+        var input = new PixelRect(600, 20, 360, 48);
+        var overlaySize = new PixelSize(520, 140);
+        var workArea = new PixelRect(0, 0, 1920, 1080);
+
+        PixelRect placement = OverlayPlacement.PlaceNearAnchor(input, overlaySize, workArea, margin: 8, offset: 14);
+
+        Assert.AreEqual(520, placement.Left);
+        Assert.AreEqual(82, placement.Top);
+    }
 }

@@ -15,6 +15,7 @@ public sealed class SettingsTests
         Assert.AreEqual(150, settings.PollIntervalMilliseconds);
         Assert.IsTrue(settings.IsOcrEnabled);
         Assert.IsTrue(settings.IsMagnifierEnabled);
+        Assert.IsTrue(settings.IsHoverTypingEnabled);
         Assert.IsFalse(settings.StartWithWindows);
     }
 
@@ -107,6 +108,75 @@ public sealed class SettingsTests
     }
 
     [TestMethod]
+    public async Task JsonSettingsStore_enables_hover_typing_for_legacy_settings_without_property()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        const string legacyJson = """
+            {
+              "TriggerKey": 0,
+              "FontSize": 56,
+              "Foreground": "#f8fafc",
+              "Background": "#111827",
+              "PollIntervalMilliseconds": 150,
+              "IsOcrEnabled": true,
+              "IsMagnifierEnabled": true,
+              "StartWithWindows": false
+            }
+            """;
+        var store = new JsonSettingsStore(path);
+
+        try
+        {
+            await File.WriteAllTextAsync(path, legacyJson);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.IsTrue(loaded.IsHoverTypingEnabled);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task JsonSettingsStore_preserves_disabled_hover_typing_setting()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        const string json = """
+            {
+              "TriggerKey": 0,
+              "FontSize": 56,
+              "Foreground": "#f8fafc",
+              "Background": "#111827",
+              "PollIntervalMilliseconds": 150,
+              "IsOcrEnabled": true,
+              "IsMagnifierEnabled": true,
+              "IsHoverTypingEnabled": false,
+              "StartWithWindows": false
+            }
+            """;
+        var store = new JsonSettingsStore(path);
+
+        try
+        {
+            await File.WriteAllTextAsync(path, json);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.IsFalse(loaded.IsHoverTypingEnabled);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
     public async Task JsonSettingsStore_preserves_disabled_magnifier_setting()
     {
         string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
@@ -139,4 +209,5 @@ public sealed class SettingsTests
             }
         }
     }
+
 }

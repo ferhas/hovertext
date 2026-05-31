@@ -1,14 +1,17 @@
+using HoverText.Core.Overlay;
+
 namespace HoverText.Core.Probing;
 
 public sealed record ProbeResult(
     ProbeSource Source,
     string DisplayText,
     MagnifierResult? Magnifier,
-    ProbeDisplayKind DisplayKind)
+    ProbeDisplayKind DisplayKind,
+    PixelRect? AnchorBounds = null)
 {
     public static ProbeResult FromText(TextProbeResult result)
     {
-        return new ProbeResult(result.Source, result.Text, null, result.DisplayKind);
+        return new ProbeResult(result.Source, result.Text, null, result.DisplayKind, result.AnchorBounds);
     }
 
     public static ProbeResult FromMagnifier(MagnifierResult result)

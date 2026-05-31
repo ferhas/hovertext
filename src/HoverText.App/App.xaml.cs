@@ -49,6 +49,7 @@ public partial class App : System.Windows.Application
         controller = new HoverTextController(
             overlay,
             pipeline,
+            automation,
             magnifier,
             new KeyboardTriggerReader(),
             new CursorPositionProvider(),

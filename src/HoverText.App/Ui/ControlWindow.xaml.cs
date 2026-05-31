@@ -11,6 +11,7 @@ public partial class ControlWindow : Window
     public ControlWindow(Action openSettings, Action exit)
     {
         InitializeComponent();
+        Icon = AppIcon.LoadImageSource();
         this.openSettings = openSettings;
         this.exit = exit;
     }

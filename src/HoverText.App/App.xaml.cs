@@ -60,9 +60,14 @@ public partial class App : System.Windows.Application
             () => Shutdown());
 
         StartupUiPolicy uiPolicy = StartupUiPolicy.CreateDefault();
-        if (uiPolicy.ShowTaskbarControlWindow)
+        if (uiPolicy.ShowTaskbarControlWindow || e.Args.Contains("--show-window", StringComparer.OrdinalIgnoreCase))
         {
             ShowControlWindow();
+        }
+
+        if (e.Args.Contains("--show-settings", StringComparer.OrdinalIgnoreCase))
+        {
+            OpenSettingsWindow();
         }
     }
 

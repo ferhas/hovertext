@@ -4,7 +4,6 @@
         Title="HoverText"
         Width="360"
         Height="210"
-        Icon="Assets/hovertext.ico"
         ResizeMode="NoResize"
         ShowInTaskbar="True"
         WindowStartupLocation="CenterScreen">

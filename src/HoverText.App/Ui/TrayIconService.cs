@@ -36,6 +36,13 @@ public sealed class TrayIconService : IDisposable
             ContextMenuStrip = contextMenu,
             Visible = true
         };
+        notifyIcon.MouseUp += (_, e) =>
+        {
+            if (e.Button == Forms.MouseButtons.Left)
+            {
+                showControlWindow();
+            }
+        };
         notifyIcon.DoubleClick += (_, _) => showControlWindow();
         UpdateSettings(settings);
     }
@@ -54,7 +61,7 @@ public sealed class TrayIconService : IDisposable
 
     private static Drawing.Icon LoadIcon()
     {
-        string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "hovertext.ico");
+        string iconPath = AppIcon.IconPath;
         return File.Exists(iconPath) ? new Drawing.Icon(iconPath) : Drawing.SystemIcons.Information;
     }
 }

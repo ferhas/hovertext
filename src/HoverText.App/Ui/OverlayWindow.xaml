@@ -8,7 +8,9 @@
         ShowActivated="False"
         ShowInTaskbar="False"
         SizeToContent="WidthAndHeight"
+        SnapsToDevicePixels="True"
         Topmost="True"
+        UseLayoutRounding="True"
         WindowStyle="None">
     <Border x:Name="Shell"
             Background="#111827"
@@ -16,7 +18,13 @@
             BorderThickness="1"
             CornerRadius="8"
             MaxWidth="720"
-            Padding="16,12">
+            Padding="16,12"
+            RenderOptions.CachingHint="Cache"
+            SnapsToDevicePixels="True">
+        <Border.CacheMode>
+            <BitmapCache EnableClearType="True"
+                         RenderAtScale="1"/>
+        </Border.CacheMode>
         <StackPanel>
             <TextBlock x:Name="SourceLabel"
                        FontSize="12"
@@ -24,6 +32,9 @@
                        Margin="0,0,0,4"/>
             <Image x:Name="MagnifierImage"
                    Height="220"
+                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                   RenderOptions.CachingHint="Cache"
+                   SnapsToDevicePixels="True"
                    Stretch="Uniform"
                    Visibility="Collapsed"/>
             <TextBlock x:Name="DisplayText"

@@ -16,6 +16,12 @@ public partial class OverlayWindow : Window
     private const int WsExTransparent = 0x00000020;
     private const int WsExToolWindow = 0x00000080;
     private const int WsExNoActivate = 0x08000000;
+    private OverlayLayoutFingerprint? lastLayoutFingerprint;
+    private string? cachedForegroundColor;
+    private string? cachedBackgroundColor;
+    private System.Windows.Media.Brush foregroundBrush = System.Windows.Media.Brushes.White;
+    private System.Windows.Media.Brush backgroundBrush = System.Windows.Media.Brushes.Black;
+    private PixelSize? lastMagnifierDisplaySize;
 
     public OverlayWindow()
     {
@@ -28,8 +34,11 @@ public partial class OverlayWindow : Window
         PointerPoint cursor,
         BitmapSource? magnifierCapture)
     {
-        ApplySettings(settings);
-        SourceLabel.Text = result.Source switch
+        OverlayLayoutFingerprint layoutFingerprint = OverlayLayoutFingerprint.From(result, settings);
+        bool needsLayout = !IsVisible || lastLayoutFingerprint != layoutFingerprint;
+
+        ApplySettings(settings, result.DisplayKind);
+        string sourceText = result.Source switch
         {
             ProbeSource.UiAutomation => "UI Automation",
             ProbeSource.Ocr => "OCR",
@@ -37,33 +46,25 @@ public partial class OverlayWindow : Window
             _ => "HoverText"
         };
 
-        ApplyDisplayKind(result.DisplayKind, settings);
-
-        if (result.Source == ProbeSource.Magnifier && magnifierCapture is not null)
+        if (SourceLabel.Text != sourceText)
         {
-            MagnifierImage.Source = magnifierCapture;
-            MagnifierImage.Visibility = Visibility.Visible;
-            if (result.Magnifier is not null)
-            {
-                MagnifierImage.Width = result.Magnifier.CaptureArea.Width * result.Magnifier.Scale;
-                MagnifierImage.Height = result.Magnifier.CaptureArea.Height * result.Magnifier.Scale;
-            }
-        }
-        else
-        {
-            MagnifierImage.Source = null;
-            MagnifierImage.Visibility = Visibility.Collapsed;
-            MagnifierImage.Width = double.NaN;
-            MagnifierImage.Height = double.NaN;
+            SourceLabel.Text = sourceText;
         }
 
-        DisplayText.Text = result.DisplayKind == ProbeDisplayKind.Input && string.IsNullOrWhiteSpace(result.DisplayText)
-            ? " "
-            : result.DisplayText;
-        DisplayText.Visibility = string.IsNullOrWhiteSpace(DisplayText.Text) && result.DisplayKind != ProbeDisplayKind.Input
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        UpdateLayout();
+        if (needsLayout)
+        {
+            ApplyDisplayKind(result.DisplayKind, settings);
+        }
+
+        UpdateMagnifier(result, magnifierCapture, needsLayout);
+        UpdateDisplayText(result);
+
+        if (needsLayout)
+        {
+            UpdateLayout();
+            lastLayoutFingerprint = layoutFingerprint;
+        }
+
         if (result.DisplayKind == ProbeDisplayKind.Input && result.AnchorBounds is not null)
         {
             PositionNearAnchor(result.AnchorBounds.Value);
@@ -87,12 +88,22 @@ public partial class OverlayWindow : Window
         SetWindowLong(handle, GwlExStyle, style | WsExTransparent | WsExToolWindow | WsExNoActivate);
     }
 
-    private void ApplySettings(HoverTextSettings settings)
+    private void ApplySettings(HoverTextSettings settings, ProbeDisplayKind displayKind)
     {
-        DisplayText.FontSize = settings.FontSize;
-        DisplayText.Foreground = ToBrush(settings.Foreground, System.Windows.Media.Brushes.White);
-        SourceLabel.Foreground = ToBrush(settings.Foreground, System.Windows.Media.Brushes.WhiteSmoke);
-        Shell.Background = ToBrush(settings.Background, System.Windows.Media.Brushes.Black);
+        foregroundBrush = GetCachedBrush(settings.Foreground, System.Windows.Media.Brushes.White, ref cachedForegroundColor, ref foregroundBrush);
+        backgroundBrush = GetCachedBrush(settings.Background, System.Windows.Media.Brushes.Black, ref cachedBackgroundColor, ref backgroundBrush);
+
+        double targetFontSize = displayKind == ProbeDisplayKind.Input
+            ? Math.Max(settings.FontSize, 76)
+            : settings.FontSize;
+        if (!DisplayText.FontSize.Equals(targetFontSize))
+        {
+            DisplayText.FontSize = targetFontSize;
+        }
+
+        DisplayText.Foreground = foregroundBrush;
+        SourceLabel.Foreground = foregroundBrush;
+        Shell.Background = backgroundBrush;
     }
 
     private void ApplyDisplayKind(ProbeDisplayKind displayKind, HoverTextSettings settings)
@@ -107,14 +118,13 @@ public partial class OverlayWindow : Window
         {
             SourceLabel.Text = "Input";
             SourceLabel.Visibility = Visibility.Collapsed;
-            Shell.Background = ToBrush(settings.Background, System.Windows.Media.Brushes.Black);
+            Shell.Background = backgroundBrush;
             Shell.BorderBrush = System.Windows.Media.Brushes.DeepSkyBlue;
             Shell.BorderThickness = new Thickness(2);
             Shell.CornerRadius = new CornerRadius(10);
             Shell.MinWidth = 560;
             Shell.MinHeight = 132;
-            DisplayText.Foreground = ToBrush(settings.Foreground, System.Windows.Media.Brushes.White);
-            DisplayText.FontSize = Math.Max(settings.FontSize, 76);
+            DisplayText.Foreground = foregroundBrush;
             return;
         }
 
@@ -125,7 +135,63 @@ public partial class OverlayWindow : Window
         }
         else
         {
-            Shell.BorderBrush = ToBrush(settings.Foreground, System.Windows.Media.Brushes.White);
+            Shell.BorderBrush = foregroundBrush;
+        }
+    }
+
+    private void UpdateMagnifier(ProbeResult result, BitmapSource? magnifierCapture, bool needsLayout)
+    {
+        if (result.Source == ProbeSource.Magnifier && magnifierCapture is not null)
+        {
+            if (!ReferenceEquals(MagnifierImage.Source, magnifierCapture))
+            {
+                MagnifierImage.Source = magnifierCapture;
+            }
+
+            MagnifierImage.Visibility = Visibility.Visible;
+            if (result.Magnifier is not null && needsLayout)
+            {
+                var displaySize = new PixelSize(
+                    (int)Math.Round(result.Magnifier.CaptureArea.Width * result.Magnifier.Scale),
+                    (int)Math.Round(result.Magnifier.CaptureArea.Height * result.Magnifier.Scale));
+                if (lastMagnifierDisplaySize != displaySize)
+                {
+                    MagnifierImage.Width = displaySize.Width;
+                    MagnifierImage.Height = displaySize.Height;
+                    lastMagnifierDisplaySize = displaySize;
+                }
+            }
+
+            return;
+        }
+
+        if (MagnifierImage.Source is not null)
+        {
+            MagnifierImage.Source = null;
+        }
+
+        MagnifierImage.Visibility = Visibility.Collapsed;
+        MagnifierImage.Width = double.NaN;
+        MagnifierImage.Height = double.NaN;
+        lastMagnifierDisplaySize = null;
+    }
+
+    private void UpdateDisplayText(ProbeResult result)
+    {
+        string displayText = result.DisplayKind == ProbeDisplayKind.Input && string.IsNullOrWhiteSpace(result.DisplayText)
+            ? " "
+            : result.DisplayText;
+        if (DisplayText.Text != displayText)
+        {
+            DisplayText.Text = displayText;
+        }
+
+        Visibility textVisibility = string.IsNullOrWhiteSpace(DisplayText.Text) && result.DisplayKind != ProbeDisplayKind.Input
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        if (DisplayText.Visibility != textVisibility)
+        {
+            DisplayText.Visibility = textVisibility;
         }
     }
 
@@ -151,11 +217,33 @@ public partial class OverlayWindow : Window
         Top = placement.Top;
     }
 
+    private static System.Windows.Media.Brush GetCachedBrush(
+        string color,
+        System.Windows.Media.Brush fallback,
+        ref string? cachedColor,
+        ref System.Windows.Media.Brush cachedBrush)
+    {
+        if (string.Equals(cachedColor, color, StringComparison.Ordinal))
+        {
+            return cachedBrush;
+        }
+
+        cachedColor = color;
+        cachedBrush = ToBrush(color, fallback);
+        return cachedBrush;
+    }
+
     private static System.Windows.Media.Brush ToBrush(string color, System.Windows.Media.Brush fallback)
     {
         try
         {
-            return (System.Windows.Media.Brush)new BrushConverter().ConvertFromString(color)!;
+            var brush = (System.Windows.Media.Brush)new BrushConverter().ConvertFromString(color)!;
+            if (brush.CanFreeze)
+            {
+                brush.Freeze();
+            }
+
+            return brush;
         }
         catch
         {

@@ -38,9 +38,9 @@ public sealed class JsonSettingsStore(string path)
     private static HoverTextSettings Normalize(HoverTextSettings settings, IReadOnlySet<string> propertyNames)
     {
         HoverTextSettings defaults = HoverTextSettings.CreateDefault();
-        if (settings.FontSize < defaults.FontSize)
+        if (settings.FontSize < HoverTextSettings.MinimumFontSize)
         {
-            settings = settings with { FontSize = defaults.FontSize };
+            settings = settings with { FontSize = HoverTextSettings.MinimumFontSize };
         }
 
         if (!propertyNames.Contains(nameof(HoverTextSettings.IsMagnifierEnabled)))

@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
 using HoverText.App.Input;
 using HoverText.App.Platform;
 using HoverText.App.Probing;
@@ -22,6 +24,7 @@ public partial class App : System.Windows.Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        System.Windows.Media.RenderOptions.ProcessRenderMode = RenderMode.Default;
 
         singleInstanceLock = SingleInstanceLock.TryAcquire(@"Local\HoverText.App");
         if (!singleInstanceLock.IsPrimaryInstance)

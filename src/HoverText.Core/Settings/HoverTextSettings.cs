@@ -9,6 +9,8 @@ public enum TriggerKey
 
 public sealed record HoverTextSettings
 {
+    public const int MinimumFontSize = 40;
+
     public TriggerKey TriggerKey { get; init; }
 
     public int FontSize { get; init; }

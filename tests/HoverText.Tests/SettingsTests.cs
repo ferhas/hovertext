@@ -52,18 +52,41 @@ public sealed class SettingsTests
     }
 
     [TestMethod]
-    public async Task JsonSettingsStore_upgrades_legacy_small_font_size()
+    public async Task JsonSettingsStore_preserves_minimum_font_size_40()
     {
         string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
         var store = new JsonSettingsStore(path);
-        var legacy = HoverTextSettings.CreateDefault() with { FontSize = 40 };
+        var settings = HoverTextSettings.CreateDefault() with { FontSize = 40 };
 
         try
         {
-            await store.SaveAsync(legacy);
+            await store.SaveAsync(settings);
             HoverTextSettings loaded = await store.LoadAsync();
 
-            Assert.AreEqual(56, loaded.FontSize);
+            Assert.AreEqual(40, loaded.FontSize);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task JsonSettingsStore_upgrades_font_size_below_minimum_to_40()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        var store = new JsonSettingsStore(path);
+        var settings = HoverTextSettings.CreateDefault() with { FontSize = 24 };
+
+        try
+        {
+            await store.SaveAsync(settings);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.AreEqual(40, loaded.FontSize);
         }
         finally
         {

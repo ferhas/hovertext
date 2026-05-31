@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Forms = System.Windows.Forms;
 using HoverText.Core.Overlay;
+using HoverText.Core.Platform;
 using HoverText.Core.Probing;
 using HoverText.Core.Settings;
 
@@ -101,6 +102,7 @@ public partial class OverlayWindow : Window
         base.OnSourceInitialized(e);
         windowHandle = new WindowInteropHelper(this).Handle;
         SetInteractive(false);
+        EnableCaptureExclusion();
     }
 
     private void ApplySettings(HoverTextSettings settings, ProbeResult result)
@@ -319,9 +321,25 @@ public partial class OverlayWindow : Window
         SetWindowLong(windowHandle, GwlExStyle, style);
     }
 
+    private void EnableCaptureExclusion()
+    {
+        if (windowHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        if (!SetWindowDisplayAffinity(windowHandle, WindowCaptureAffinity.ExcludeFromCapture))
+        {
+            _ = SetWindowDisplayAffinity(windowHandle, WindowCaptureAffinity.MonitorOnly);
+        }
+    }
+
     [DllImport("user32.dll")]
     private static extern int GetWindowLong(IntPtr windowHandle, int index);
 
     [DllImport("user32.dll")]
     private static extern int SetWindowLong(IntPtr windowHandle, int index, int newLong);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowDisplayAffinity(IntPtr windowHandle, WindowCaptureAffinity affinity);
 }

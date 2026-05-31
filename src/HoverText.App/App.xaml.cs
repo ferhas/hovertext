@@ -43,11 +43,7 @@ public partial class App : System.Windows.Application
         var automation = new UiAutomationTextProbeSource();
         var ocr = new TesseractCliOcrTextProbeSource();
         var magnifier = new ScreenMagnifierFallback();
-        var pipeline = new TextProbePipeline(automation, ocr, magnifier, () =>
-        {
-            overlay.Hide();
-            return Task.CompletedTask;
-        });
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
 
         controller = new HoverTextController(
             overlay,

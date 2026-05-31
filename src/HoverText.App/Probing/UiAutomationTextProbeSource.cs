@@ -98,19 +98,16 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         }
 
         bool isInput = IsInputElement(element);
-        string? text = isInput
-            ? TryReadInputText(element)
+        ProbeTextSelection selection = isInput
+            ? ProbeTextSelection.ForInput(TryReadInputText(element))
             : TryReadNonInputText(element, point);
-        ProbeDisplayKind displayKind = isInput
-            ? ProbeDisplayKind.Input
-            : GuessDisplayKind(element, text);
         PixelRect? anchorBounds = TryGetBounds(element);
-        if (displayKind == ProbeDisplayKind.Input && requireInput)
+        if (selection.DisplayKind == ProbeDisplayKind.Input && requireInput)
         {
             lastFocusedInput = element;
         }
 
-        return ToResult(text, displayKind, anchorBounds);
+        return ToResult(selection.Text, selection.DisplayKind, anchorBounds);
     }
 
     private TextProbeResult TryReadFocusedInput(PointerPoint? point, bool strictTextInput = false)
@@ -144,17 +141,21 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         }
     }
 
-    private static string? TryReadNonInputText(AutomationElement element, PointerPoint? point)
+    private static ProbeTextSelection TryReadNonInputText(AutomationElement element, PointerPoint? point)
     {
-        return IsActionLikeElement(element)
-            ? TryReadProperty(element, AutomationElement.HelpTextProperty)
-                ?? TryReadProperty(element, AutomationElement.NameProperty)
-                ?? TryReadValuePattern(element, allowEmpty: false)
-                ?? TryReadTextAtPoint(element, point)
-            : TryReadTextAtPoint(element, point)
+        if (IsActionLikeElement(element))
+        {
+            return ProbeTextSelection.ForActionLike(
+                TryReadProperty(element, AutomationElement.NameProperty),
+                TryReadValuePattern(element, allowEmpty: false),
+                TryReadProperty(element, AutomationElement.HelpTextProperty));
+        }
+
+        string? text = TryReadTextAtPoint(element, point)
                 ?? TryReadValuePattern(element, allowEmpty: false)
                 ?? TryReadProperty(element, AutomationElement.HelpTextProperty)
                 ?? TryReadProperty(element, AutomationElement.NameProperty);
+        return new ProbeTextSelection(text, GuessDisplayKind(element, text));
     }
 
     private static string TryReadInputText(AutomationElement element)

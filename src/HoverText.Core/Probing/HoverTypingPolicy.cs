@@ -4,9 +4,13 @@ namespace HoverText.Core.Probing;
 
 public static class HoverTypingPolicy
 {
-    public static bool ShouldShowWithoutTrigger(HoverTextSettings settings, ProbeResult result)
+    public static bool ShouldShowWithoutTrigger(
+        HoverTextSettings settings,
+        ProbeResult result,
+        bool hasRecentTypingActivity)
     {
         return settings.IsHoverTypingEnabled
+            && hasRecentTypingActivity
             && result.Source != ProbeSource.None
             && result.DisplayKind == ProbeDisplayKind.Input;
     }

@@ -18,6 +18,7 @@ public sealed class HoverTextController : IDisposable
     private readonly CursorPositionProvider cursorProvider;
     private readonly DispatcherTimer timer;
     private readonly DateTime startedAt = DateTime.UtcNow;
+    private readonly HoverTypingActivityGate hoverTypingActivityGate = HoverTypingActivityGate.CreateDefault();
     private bool isTicking;
     private HoverTextSettings settings;
     private ProbeResult? cachedMagnifierResult;
@@ -82,7 +83,13 @@ public sealed class HoverTextController : IDisposable
             PointerPoint point = cursorProvider.GetCursorPosition();
             if (!triggerReader.IsPressed(settings.TriggerKey))
             {
-                await ShowFocusedInputWithoutTrigger(point);
+                TimeSpan now = ElapsedSinceStart();
+                if (triggerReader.HasTypingActivity())
+                {
+                    hoverTypingActivityGate.RecordTypingActivity(now);
+                }
+
+                await ShowFocusedInputWithoutTrigger(point, hoverTypingActivityGate.HasRecentActivity(now));
                 return;
             }
 
@@ -136,12 +143,18 @@ public sealed class HoverTextController : IDisposable
         return DateTime.UtcNow - startedAt;
     }
 
-    private async Task ShowFocusedInputWithoutTrigger(PointerPoint point)
+    private async Task ShowFocusedInputWithoutTrigger(PointerPoint point, bool hasRecentTypingActivity)
     {
         ClearMagnifierCache();
+        if (!settings.IsHoverTypingEnabled || !hasRecentTypingActivity)
+        {
+            overlayWindow.Hide();
+            return;
+        }
+
         TextProbeResult textResult = await focusedInputProbe.TryReadFocusedInputAsync();
         ProbeResult result = ProbeResult.FromText(textResult);
-        if (!HoverTypingPolicy.ShouldShowWithoutTrigger(settings, result))
+        if (!HoverTypingPolicy.ShouldShowWithoutTrigger(settings, result, hasRecentTypingActivity))
         {
             overlayWindow.Hide();
             return;

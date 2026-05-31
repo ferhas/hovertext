@@ -7,10 +7,16 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <ApplicationIcon>Assets\hovertext.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\hovertext.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\hovertext-icon.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>

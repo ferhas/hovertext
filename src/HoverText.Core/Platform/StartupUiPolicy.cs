@@ -5,7 +5,7 @@ public sealed record StartupUiPolicy(bool ShowTaskbarControlWindow, bool Control
     public static StartupUiPolicy CreateDefault()
     {
         return new StartupUiPolicy(
-            ShowTaskbarControlWindow: true,
+            ShowTaskbarControlWindow: false,
             ControlWindowCloseExitsApplication: true);
     }
 }

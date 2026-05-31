@@ -53,6 +53,7 @@ public partial class App : System.Windows.Application
 
         trayIcon = new TrayIconService(
             settings,
+            ShowControlWindow,
             OpenSettingsWindow,
             ToggleOcr,
             ToggleStartup,
@@ -61,8 +62,7 @@ public partial class App : System.Windows.Application
         StartupUiPolicy uiPolicy = StartupUiPolicy.CreateDefault();
         if (uiPolicy.ShowTaskbarControlWindow)
         {
-            controlWindow = new ControlWindow(OpenSettingsWindow, () => Shutdown());
-            controlWindow.Show();
+            ShowControlWindow();
         }
     }
 
@@ -84,6 +84,23 @@ public partial class App : System.Windows.Application
         var window = new SettingsWindow(settings, SaveSettingsAsync);
         window.Show();
         window.Activate();
+    }
+
+    private void ShowControlWindow()
+    {
+        if (controlWindow is null)
+        {
+            controlWindow = new ControlWindow(OpenSettingsWindow, () => Shutdown());
+            controlWindow.Closed += (_, _) => controlWindow = null;
+        }
+
+        controlWindow.Show();
+        if (controlWindow.WindowState == WindowState.Minimized)
+        {
+            controlWindow.WindowState = WindowState.Normal;
+        }
+
+        controlWindow.Activate();
     }
 
     private async Task SaveSettingsAsync(HoverTextSettings updated)

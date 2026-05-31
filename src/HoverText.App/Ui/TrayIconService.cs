@@ -1,3 +1,4 @@
+using System.IO;
 using Forms = System.Windows.Forms;
 using Drawing = System.Drawing;
 using HoverText.Core.Settings;
@@ -12,6 +13,7 @@ public sealed class TrayIconService : IDisposable
 
     public TrayIconService(
         HoverTextSettings settings,
+        Action showControlWindow,
         Action openSettings,
         Action toggleOcr,
         Action toggleStartup,
@@ -20,6 +22,7 @@ public sealed class TrayIconService : IDisposable
         ocrItem = new Forms.ToolStripMenuItem("OCR fallback", null, (_, _) => toggleOcr()) { CheckOnClick = false };
         startupItem = new Forms.ToolStripMenuItem("Start with Windows", null, (_, _) => toggleStartup()) { CheckOnClick = false };
         var contextMenu = new Forms.ContextMenuStrip();
+        contextMenu.Items.Add(new Forms.ToolStripMenuItem("Show HoverText", null, (_, _) => showControlWindow()));
         contextMenu.Items.Add(new Forms.ToolStripMenuItem("Settings", null, (_, _) => openSettings()));
         contextMenu.Items.Add(ocrItem);
         contextMenu.Items.Add(startupItem);
@@ -28,12 +31,12 @@ public sealed class TrayIconService : IDisposable
 
         notifyIcon = new Forms.NotifyIcon
         {
-            Icon = Drawing.SystemIcons.Information,
+            Icon = LoadIcon(),
             Text = "HoverText",
             ContextMenuStrip = contextMenu,
             Visible = true
         };
-        notifyIcon.DoubleClick += (_, _) => openSettings();
+        notifyIcon.DoubleClick += (_, _) => showControlWindow();
         UpdateSettings(settings);
     }
 
@@ -47,5 +50,11 @@ public sealed class TrayIconService : IDisposable
     {
         notifyIcon.Visible = false;
         notifyIcon.Dispose();
+    }
+
+    private static Drawing.Icon LoadIcon()
+    {
+        string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "hovertext.ico");
+        return File.Exists(iconPath) ? new Drawing.Icon(iconPath) : Drawing.SystemIcons.Information;
     }
 }

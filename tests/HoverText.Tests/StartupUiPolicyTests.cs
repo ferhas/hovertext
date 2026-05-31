@@ -6,11 +6,11 @@ namespace HoverText.Tests;
 public sealed class StartupUiPolicyTests
 {
     [TestMethod]
-    public void Default_policy_shows_taskbar_close_surface()
+    public void Default_policy_starts_minimized_to_tray()
     {
         StartupUiPolicy policy = StartupUiPolicy.CreateDefault();
 
-        Assert.IsTrue(policy.ShowTaskbarControlWindow);
+        Assert.IsFalse(policy.ShowTaskbarControlWindow);
         Assert.IsTrue(policy.ControlWindowCloseExitsApplication);
     }
 }

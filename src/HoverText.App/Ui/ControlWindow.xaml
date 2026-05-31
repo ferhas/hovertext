@@ -4,6 +4,7 @@
         Title="HoverText"
         Width="360"
         Height="210"
+        Icon="Assets/hovertext.ico"
         ResizeMode="NoResize"
         ShowInTaskbar="True"
         WindowStartupLocation="CenterScreen">
@@ -22,7 +23,7 @@
                        TextWrapping="Wrap"
                        Foreground="#5d697c"
                        Margin="0,0,0,8"/>
-            <TextBlock Text="This window stays on the taskbar so you can always close HoverText."
+            <TextBlock Text="The tray icon menu can reopen this window or exit HoverText."
                        TextWrapping="Wrap"
                        Foreground="#5d697c"/>
         </StackPanel>

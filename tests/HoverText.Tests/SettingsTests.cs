@@ -19,9 +19,11 @@ public sealed class SettingsTests
     }
 
     [TestMethod]
-    public void Hover_typing_setting_is_not_part_of_settings_anymore()
+    public void Default_settings_keep_hover_typing_off_until_user_enables_it()
     {
-        Assert.IsNull(typeof(HoverTextSettings).GetProperty("IsHoverTypingEnabled"));
+        HoverTextSettings settings = HoverTextSettings.CreateDefault();
+
+        Assert.IsFalse(settings.IsHoverTypingEnabled);
     }
 
     [TestMethod]
@@ -37,7 +39,8 @@ public sealed class SettingsTests
             TriggerKey = TriggerKey.Control,
             IsOcrEnabled = false,
             StartWithWindows = true,
-            PollIntervalMilliseconds = 100
+            PollIntervalMilliseconds = 100,
+            IsHoverTypingEnabled = true
         };
 
         try
@@ -159,6 +162,40 @@ public sealed class SettingsTests
             HoverTextSettings loaded = await store.LoadAsync();
 
             Assert.IsFalse(loaded.IsMagnifierEnabled);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task JsonSettingsStore_disables_hover_typing_for_legacy_settings_without_property()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        const string legacyJson = """
+            {
+              "TriggerKey": 0,
+              "FontSize": 56,
+              "Foreground": "#f8fafc",
+              "Background": "#111827",
+              "PollIntervalMilliseconds": 150,
+              "IsOcrEnabled": true,
+              "IsMagnifierEnabled": true,
+              "StartWithWindows": false
+            }
+            """;
+        var store = new JsonSettingsStore(path);
+
+        try
+        {
+            await File.WriteAllTextAsync(path, legacyJson);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.IsFalse(loaded.IsHoverTypingEnabled);
         }
         finally
         {

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HoverText GitHub 发布总结</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5d6b7a;
+      --line: #d8e2ea;
+      --blue: #1468c7;
+      --green: #1f8a5b;
+      --amber: #a35f00;
+      --panel: #ffffff;
+      --wash: #f4f8fb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eef6fb 0%, #ffffff 58%);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 48px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: stretch;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 18px 50px rgba(32, 62, 92, 0.12);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f7fbfe;
+      color: #22425f;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .screen {
+      border: 1px solid #b9c9d8;
+      border-radius: 8px;
+      background: #0f1720;
+      padding: 18px;
+      min-height: 260px;
+      display: grid;
+      align-content: center;
+      gap: 14px;
+      color: white;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .tiny-line {
+      height: 10px;
+      border-radius: 10px;
+      background: #42566b;
+    }
+
+    .tiny-line:nth-child(2) {
+      width: 72%;
+    }
+
+    .tiny-line:nth-child(3) {
+      width: 58%;
+    }
+
+    .floating-text {
+      margin-top: 10px;
+      padding: 18px 20px;
+      border: 2px solid #8bd0ff;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #0c1c28;
+      font-size: 34px;
+      line-height: 1.1;
+      font-weight: 800;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.32);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+    }
+
+    .card h2,
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .metric {
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--wash);
+      border: 1px solid var(--line);
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 24px;
+      color: var(--blue);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .link {
+      color: var(--blue);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .footer {
+      margin-top: 22px;
+      padding: 18px;
+      border-left: 5px solid var(--green);
+      background: #f2fbf6;
+      border-radius: 8px;
+      color: #214536;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 820px) {
+      .hero,
+      .grid,
+      .status {
+        grid-template-columns: 1fr;
+      }
+
+      .wide {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>HoverText 已公开发布</h1>
+        <p class="subtitle">
+          GitHub 首页已经改成中英双语版本，核心定位清楚放在第一屏：
+          为视力障碍和低视力 Windows 用户补上类似 Apple Hover Text 的悬浮文字辅助体验。
+        </p>
+        <div class="badges" aria-label="发布标签">
+          <span class="badge">GitHub Public</span>
+          <span class="badge">Chinese + English</span>
+          <span class="badge">Windows Accessibility</span>
+          <span class="badge">.NET 8 WPF</span>
+        </div>
+      </div>
+      <div class="screen" aria-label="悬浮文字示意">
+        <div class="tiny-line"></div>
+        <div class="tiny-line"></div>
+        <div class="tiny-line"></div>
+        <div class="floating-text">Clearer text, right where you look.</div>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="成果摘要">
+      <article class="card">
+        <h2>公开状态</h2>
+        <p>仓库已经从 private 切换为 public，匿名 API 和 GitHub 页面均验证可访问。</p>
+      </article>
+      <article class="card">
+        <h2>首页叙事</h2>
+        <p>README 强调 Apple 有 Hover Text，而 Windows 缺少同类轻量体验，HoverText 正是为这个缺口而做。</p>
+      </article>
+      <article class="card">
+        <h2>中英双语</h2>
+        <p>中文面向国内用户解释价值，英文面向开源社区说明场景、功能和项目状态。</p>
+      </article>
+    </section>
+
+    <section class="status" aria-label="验证指标">
+      <div class="metric">
+        <strong>200</strong>
+        <span>匿名 GitHub API 访问状态</span>
+      </div>
+      <div class="metric">
+        <strong>Public</strong>
+        <span>GitHub 仓库可见性</span>
+      </div>
+      <div class="metric">
+        <strong>983fb57</strong>
+        <span>首页提交版本</span>
+      </div>
+      <div class="metric">
+        <strong>7</strong>
+        <span>已设置仓库 topics</span>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="首页内容结构">
+      <article class="card wide">
+        <h3>GitHub 地址</h3>
+        <p>
+          <a class="link" href="https://github.com/ferhas/hovertext">https://github.com/ferhas/hovertext</a>
+        </p>
+      </article>
+      <article class="card">
+        <h3>下一步可做</h3>
+        <p>后续最值得补的是 Release 包、安装说明截图，以及面向低视力用户的实际使用演示图。</p>
+      </article>
+    </section>
+
+    <div class="footer">
+      结果：项目已经可以作为公开开源项目被访问，首页第一屏就能说明“这是为 Windows 用户补足 Hover Text 辅助体验”的价值。
+    </div>
+  </main>
+</body>
+</html>

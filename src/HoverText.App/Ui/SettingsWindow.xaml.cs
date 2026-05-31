@@ -31,6 +31,7 @@ public partial class SettingsWindow : Window
         BackgroundBox.Text = value.Background;
         OcrBox.IsChecked = value.IsOcrEnabled;
         MagnifierBox.IsChecked = value.IsMagnifierEnabled;
+        HoverTypingBox.IsChecked = value.IsHoverTypingEnabled;
         StartupBox.IsChecked = value.StartWithWindows;
         UpdateSliderLabels();
         UpdateTriggerButtons();
@@ -47,6 +48,7 @@ public partial class SettingsWindow : Window
             Background = BackgroundBox.Text,
             IsOcrEnabled = OcrBox.IsChecked == true,
             IsMagnifierEnabled = MagnifierBox.IsChecked == true,
+            IsHoverTypingEnabled = HoverTypingBox.IsChecked == true,
             StartWithWindows = StartupBox.IsChecked == true
         };
 
@@ -146,10 +148,13 @@ public partial class SettingsWindow : Window
     private static void SetTriggerButtonState(System.Windows.Controls.Button button, bool isSelected)
     {
         button.Background = isSelected
-            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(8, 145, 178))
-            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59));
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(52, 211, 153))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(32, 40, 35));
         button.BorderBrush = isSelected
-            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 211, 238))
-            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(71, 85, 105));
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(16, 185, 129))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(53, 66, 59));
+        button.Foreground = isSelected
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(6, 18, 14))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 247, 237));
     }
 }

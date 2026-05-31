@@ -8,6 +8,7 @@ using HoverText.Core.Overlay;
 using HoverText.Core.Platform;
 using HoverText.Core.Probing;
 using HoverText.Core.Settings;
+using HoverText.Core.Typing;
 
 namespace HoverText.App.Ui;
 
@@ -73,6 +74,56 @@ public partial class OverlayWindow : Window
         }
 
         PositionNearCursor(cursor);
+
+        SetInteractive(false);
+        if (!IsVisible)
+        {
+            Show();
+        }
+    }
+
+    public void ShowHoverTypingDisplay(
+        HoverTypingDisplay display,
+        HoverTextSettings settings,
+        PointerPoint fallbackCursor)
+    {
+        var result = new ProbeResult(
+            ProbeSource.UiAutomation,
+            display.Text,
+            null,
+            ProbeDisplayKind.Text,
+            display.AnchorBounds);
+        OverlayLayoutFingerprint layoutFingerprint = OverlayLayoutFingerprint.From(result, settings);
+        bool needsLayout = !IsVisible || lastLayoutFingerprint != layoutFingerprint;
+
+        ApplySettings(settings, result);
+        if (SourceLabel.Text != "Typing")
+        {
+            SourceLabel.Text = "Typing";
+        }
+
+        if (needsLayout)
+        {
+            ApplyDisplayKind(result.DisplayKind, settings);
+        }
+
+        UpdateMagnifier(result, null, needsLayout);
+        UpdateDisplayText(result);
+
+        if (needsLayout)
+        {
+            UpdateLayout();
+            lastLayoutFingerprint = layoutFingerprint;
+        }
+
+        if (display.AnchorBounds is PixelRect anchor)
+        {
+            PositionNearAnchor(anchor);
+        }
+        else
+        {
+            PositionNearCursor(fallbackCursor);
+        }
 
         SetInteractive(false);
         if (!IsVisible)
@@ -185,6 +236,21 @@ public partial class OverlayWindow : Window
         var workArea = new PixelRect(area.Left, area.Top, area.Width, area.Height);
         var overlaySize = new PixelSize((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight));
         PixelRect placement = OverlayPlacement.PlaceNearCursor(cursor, overlaySize, workArea, margin: 8, offset: 18);
+        Left = placement.Left;
+        Top = placement.Top;
+    }
+
+    private void PositionNearAnchor(PixelRect anchor)
+    {
+        Forms.Screen screen = Forms.Screen.FromRectangle(new System.Drawing.Rectangle(
+            anchor.Left,
+            anchor.Top,
+            anchor.Width,
+            anchor.Height));
+        System.Drawing.Rectangle area = screen.WorkingArea;
+        var workArea = new PixelRect(area.Left, area.Top, area.Width, area.Height);
+        var overlaySize = new PixelSize((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight));
+        PixelRect placement = OverlayPlacement.PlaceNearAnchor(anchor, overlaySize, workArea, margin: 8, offset: 14);
         Left = placement.Left;
         Top = placement.Top;
     }

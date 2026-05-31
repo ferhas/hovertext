@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HoverText 申请 OpenAI Codex for OSS 通过率分析</title>
+  <style>
+    :root {
+      --ink: #18212b;
+      --muted: #657181;
+      --line: #d9e0e7;
+      --panel: #ffffff;
+      --wash: #f5f8fb;
+      --good: #13795b;
+      --warn: #946200;
+      --risk: #bd2b20;
+      --blue: #2457a6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--wash);
+    }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 46px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    .hero, .score, .card, section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 4.8vw, 54px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+    .lead {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+    .score {
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .score strong {
+      display: block;
+      font-size: clamp(46px, 8vw, 78px);
+      line-height: 1;
+      color: var(--warn);
+    }
+    .score span { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .good { color: var(--good); background: #ddf5ec; }
+    .warn { color: var(--warn); background: #fff3c4; }
+    .risk { color: var(--risk); background: #ffe2df; }
+    .blue { color: var(--blue); background: #e4efff; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 7px 0; line-height: 1.55; }
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: #edf1f5;
+      overflow: hidden;
+      margin: 10px 0 14px;
+    }
+    .bar > i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+    .metric {
+      display: grid;
+      gap: 4px;
+    }
+    .metric strong {
+      font-size: 26px;
+      line-height: 1.1;
+    }
+    .metric span { color: var(--muted); }
+    .roadmap {
+      display: grid;
+      gap: 10px;
+      counter-reset: item;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+    .step::before {
+      counter-increment: item;
+      content: counter(item);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 820px) {
+      header, .grid { grid-template-columns: 1fr; }
+      .span-4, .span-6, .span-12 { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="hero">
+        <h1>HoverText 现在能不能过？</h1>
+        <p class="lead">项目方向对，开源呈现已经成型，但刚公开、无外部使用数据、无 stars/forks/issues，是当前申请 OpenAI Codex for Open Source 最大阻力。</p>
+      </div>
+      <div class="score">
+        <strong>35%</strong>
+        <span>现在直接申请的粗略通过率</span>
+        <span>补强 2-4 周后可争取 60%-70%</span>
+      </div>
+    </header>
+
+    <section class="span-12">
+      <span class="pill warn">判断</span>
+      <h2>不是“项目不够好”，而是“证据还不够厚”</h2>
+      <p class="lead">OpenAI 表单会让你说明项目为什么符合条件，例如 stars、下载量和生态价值。HoverText 的公益性和差异化很清楚，但公开仓库刚创建，外部采纳信号几乎还没有沉淀。</p>
+    </section>
+
+    <div class="grid">
+      <div class="card span-4 metric">
+        <span class="pill good">强项</span>
+        <strong>Public + Releases</strong>
+        <span>仓库公开，有 Windows EXE release，可直接下载试用。</span>
+      </div>
+      <div class="card span-4 metric">
+        <span class="pill good">强项</span>
+        <strong>真实问题</strong>
+        <span>低视力 Windows 用户缺少轻量 Hover Text，是清晰的辅助技术场景。</span>
+      </div>
+      <div class="card span-4 metric">
+        <span class="pill risk">短板</span>
+        <strong>0 stars</strong>
+        <span>暂无公开影响力、下载量、issue、PR 或用户反馈证据。</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="span-6">
+        <span class="pill blue">维度评分</span>
+        <h2>当前材料强度</h2>
+        <p>项目定位</p><div class="bar"><i style="width: 82%"></i></div>
+        <p>可运行/可发布</p><div class="bar"><i style="width: 72%"></i></div>
+        <p>开源基础设施</p><div class="bar"><i style="width: 45%"></i></div>
+        <p>社区影响力</p><div class="bar"><i style="width: 8%"></i></div>
+        <p>维护者证据</p><div class="bar"><i style="width: 35%"></i></div>
+      </section>
+
+      <section class="span-6">
+        <span class="pill risk">申请前补洞</span>
+        <h2>最影响通过率的缺口</h2>
+        <ul>
+          <li>仓库没有 LICENSE 文件，开源身份会显得不完整。</li>
+          <li>没有 CONTRIBUTING、Code of Conduct、Security policy 或 issue templates。</li>
+          <li>没有 CI badge/Actions，测试存在但公开可见的质量信号不足。</li>
+          <li>中文 README 当前本地显示为乱码，需要确认远端是否正常。</li>
+          <li>缺少真实用户场景截图、demo GIF、下载量或反馈链接。</li>
+        </ul>
+      </section>
+    </div>
+
+    <section>
+      <span class="pill blue">最短路线</span>
+      <h2>建议先补强再申请</h2>
+      <div class="roadmap">
+        <div class="step">当天补齐 LICENSE、CONTRIBUTING、SECURITY、issue templates、GitHub Actions 测试，让仓库像一个完整 OSS 项目。</div>
+        <div class="step">做一个 30-60 秒 demo GIF 或截图，把低视力场景和 Windows 原生体验差异讲清楚。</div>
+        <div class="step">发布到相关社区收集第一批证据：GitHub stars、release downloads、真实 issue、用户反馈或 accessibility 讨论链接。</div>
+        <div class="step">申请表里主打“Windows accessibility gap”，API credits 用于自动化兼容性测试、OCR fallback 回归、issue triage 和 release QA。</div>
+      </div>
+    </section>
+
+    <footer>数据快照：2026-05-31。GitHub 公开侧显示 ferhas/hovertext 为 public，C#，2 个 release，0 stars，0 forks，0 open issues，7 个 topics。</footer>
+  </main>
+</body>
+</html>

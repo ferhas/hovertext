@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HoverText OSS 申请材料补强总结</title>
+  <style>
+    :root {
+      --ink: #18212b;
+      --muted: #657181;
+      --line: #d7dfe7;
+      --panel: #ffffff;
+      --wash: #f4f7fa;
+      --green: #13795b;
+      --blue: #2457a6;
+      --amber: #946200;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--wash);
+    }
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 44px;
+    }
+    header, section, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 4.8vw, 54px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+    .lead {
+      margin: 0;
+      max-width: 740px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.65;
+    }
+    .score {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: #eaf6f1;
+      border-color: #b7dfcf;
+    }
+    .score strong {
+      font-size: clamp(44px, 8vw, 74px);
+      color: var(--green);
+      line-height: 1;
+    }
+    .score span { color: #315747; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .green { color: var(--green); background: #ddf5ec; }
+    .blue { color: var(--blue); background: #e4efff; }
+    .amber { color: var(--amber); background: #fff3c4; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 7px 0; line-height: 1.55; }
+    .metric strong {
+      display: block;
+      font-size: 27px;
+      margin-bottom: 6px;
+    }
+    .metric span { color: var(--muted); }
+    code {
+      background: #eef2f6;
+      padding: 2px 5px;
+      border-radius: 5px;
+    }
+    footer {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    @media (max-width: 780px) {
+      header, .grid { grid-template-columns: 1fr; }
+      .span-4, .span-6, .span-12 { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <section>
+        <h1>HoverText OSS 申请材料已补强</h1>
+        <p class="lead">这轮补齐了开源项目的基础信任材料、GitHub 协作入口、CI 工作流、双语 README 申请信号，以及 OpenAI Codex for OSS 的填表素材。</p>
+      </section>
+      <section class="score">
+        <div>
+          <strong>46/46</strong>
+          <span>本地测试通过</span>
+        </div>
+      </section>
+    </header>
+
+    <div class="grid">
+      <article class="card span-4 metric">
+        <span class="pill green">新增</span>
+        <strong>MIT License</strong>
+        <span>补齐开源项目最基本的法律和复用信号。</span>
+      </article>
+      <article class="card span-4 metric">
+        <span class="pill blue">新增</span>
+        <strong>GitHub Templates</strong>
+        <span>Bug、辅助功能反馈、PR 模板和安全报告入口。</span>
+      </article>
+      <article class="card span-4 metric">
+        <span class="pill green">新增</span>
+        <strong>Windows CI</strong>
+        <span>Actions 会 restore、build、test .NET 8 解决方案。</span>
+      </article>
+    </div>
+
+    <div class="grid">
+      <section class="span-6">
+        <span class="pill blue">README</span>
+        <h2>公开首页更像成熟 OSS</h2>
+        <ul>
+          <li>加入 CI 和 MIT license badges。</li>
+          <li>新增隐私和安全说明，强调核心行为本地运行。</li>
+          <li>新增贡献入口、支持入口和路线图。</li>
+          <li>中文 README 已修为正常 UTF-8 内容。</li>
+        </ul>
+      </section>
+      <section class="span-6">
+        <span class="pill amber">申请素材</span>
+        <h2>OpenAI 填表材料池</h2>
+        <ul>
+          <li><code>docs/openai-codex-for-oss-application.md</code> 已整理项目摘要。</li>
+          <li>包含项目价值、维护者角色、API credits 用途。</li>
+          <li>明确还需要收集 stars、下载量、用户反馈和 demo 证据。</li>
+        </ul>
+      </section>
+    </div>
+
+    <section>
+      <span class="pill green">验证</span>
+      <h2>本地检查结果</h2>
+      <ul>
+        <li><code>dotnet --info</code> 正常，SDK 版本为 8.0.421。</li>
+        <li>Core 和 App 单项目 build 成功。</li>
+        <li>测试通过：失败 0，通过 46，跳过 0，总计 46。</li>
+        <li>NuGet 全局临时目录存在锁文件问题；已临时把 <code>TEMP/TMP</code> 指向仓库内 <code>artifacts/nuget-temp</code> 后验证通过。</li>
+      </ul>
+    </section>
+
+    <footer>生成时间：2026-05-31。下一步最值得做的是上传这些文件、等待 CI 首跑，再补 demo GIF 和真实用户反馈。</footer>
+  </main>
+</body>
+</html>

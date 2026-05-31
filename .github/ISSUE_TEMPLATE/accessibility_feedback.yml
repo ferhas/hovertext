@@ -1,0 +1,36 @@
+name: Accessibility feedback
+description: Share low-vision usability feedback or assistive-technology scenarios
+title: "[Accessibility]: "
+labels: ["accessibility", "feedback"]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: What were you trying to read or do?
+    validations:
+      required: true
+  - type: textarea
+    id: experience
+    attributes:
+      label: HoverText experience
+      description: What helped, and what got in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: Optional, but useful if you have a specific change in mind.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Windows version, display scaling, monitor setup, app name
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I have redacted private text, credentials, and personal information from screenshots or recordings.
+          required: true

@@ -29,4 +29,12 @@ public sealed class KeyboardTriggerReaderTests
 
         Assert.IsTrue(reader.IsPressed(TriggerKey.Control));
     }
+
+    [TestMethod]
+    public void IsEscapePressed_accepts_short_tap_state()
+    {
+        var reader = new KeyboardTriggerReader(key => key == 0x1B ? (short)0x0001 : (short)0);
+
+        Assert.IsTrue(reader.IsEscapePressed());
+    }
 }

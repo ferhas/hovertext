@@ -50,6 +50,7 @@ public partial class App : System.Windows.Application
         controller = new HoverTextController(
             overlay,
             pipeline,
+            new UiAutomationHoverTypingProbeSource(),
             magnifier,
             new KeyboardTriggerReader(),
             new CursorPositionProvider(),
@@ -60,6 +61,7 @@ public partial class App : System.Windows.Application
             settings,
             OpenSettingsWindow,
             ToggleOcr,
+            ToggleHoverTyping,
             ToggleStartup,
             () => Shutdown());
 
@@ -122,6 +124,11 @@ public partial class App : System.Windows.Application
     private async void ToggleOcr()
     {
         await SaveSettingsAsync(settings with { IsOcrEnabled = !settings.IsOcrEnabled });
+    }
+
+    private async void ToggleHoverTyping()
+    {
+        await SaveSettingsAsync(settings with { IsHoverTypingEnabled = !settings.IsHoverTypingEnabled });
     }
 
     private async void ToggleStartup()

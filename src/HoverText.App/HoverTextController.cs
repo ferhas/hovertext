@@ -5,6 +5,7 @@ using HoverText.App.Ui;
 using HoverText.Core.Overlay;
 using HoverText.Core.Probing;
 using HoverText.Core.Settings;
+using HoverText.Core.Typing;
 
 namespace HoverText.App;
 
@@ -12,6 +13,8 @@ public sealed class HoverTextController : IDisposable
 {
     private readonly OverlayWindow overlayWindow;
     private readonly TextProbePipeline pipeline;
+    private readonly IHoverTypingProbeSource hoverTypingProbe;
+    private readonly HoverTypingSession hoverTypingSession = new();
     private readonly ScreenMagnifierFallback magnifier;
     private readonly KeyboardTriggerReader triggerReader;
     private readonly CursorPositionProvider cursorProvider;
@@ -25,6 +28,7 @@ public sealed class HoverTextController : IDisposable
     public HoverTextController(
         OverlayWindow overlayWindow,
         TextProbePipeline pipeline,
+        IHoverTypingProbeSource hoverTypingProbe,
         ScreenMagnifierFallback magnifier,
         KeyboardTriggerReader triggerReader,
         CursorPositionProvider cursorProvider,
@@ -32,6 +36,7 @@ public sealed class HoverTextController : IDisposable
     {
         this.overlayWindow = overlayWindow;
         this.pipeline = pipeline;
+        this.hoverTypingProbe = hoverTypingProbe;
         this.magnifier = magnifier;
         this.triggerReader = triggerReader;
         this.cursorProvider = cursorProvider;
@@ -80,6 +85,20 @@ public sealed class HoverTextController : IDisposable
             if (!triggerReader.IsPressed(settings.TriggerKey))
             {
                 ClearMagnifierCache();
+                if (settings.IsHoverTypingEnabled)
+                {
+                    HoverTypingSnapshot snapshot = await hoverTypingProbe.ReadAsync();
+                    HoverTypingDisplay display = hoverTypingSession.Evaluate(
+                        settings,
+                        snapshot,
+                        triggerReader.IsEscapePressed());
+                    if (display.IsVisible)
+                    {
+                        overlayWindow.ShowHoverTypingDisplay(display, settings, point);
+                        return;
+                    }
+                }
+
                 overlayWindow.Hide();
                 return;
             }

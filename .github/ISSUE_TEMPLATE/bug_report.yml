@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a problem with text reading, overlay behavior, OCR, or app startup
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the app, screen, and trigger key used.
+      placeholder: |
+        1. Open ...
+        2. Move the cursor over ...
+        3. Hold Alt ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 23H2
+    validations:
+      required: true
+  - type: input
+    id: scaling
+    attributes:
+      label: Display scaling
+      placeholder: 100%, 125%, 150%, mixed DPI, etc.
+  - type: dropdown
+    id: text-kind
+    attributes:
+      label: Text type
+      options:
+        - Normal UI text
+        - Browser/web content
+        - Icon tooltip or accessible name
+        - Image-based text
+        - Other
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I have redacted private text, credentials, and personal information from screenshots or recordings.
+          required: true

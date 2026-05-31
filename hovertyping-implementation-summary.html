@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hover Typing 实现总结</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07130f;
+      --panel: #102019;
+      --panel-2: #172820;
+      --text: #fff7ed;
+      --muted: #b8c9bf;
+      --accent: #34d399;
+      --line: #365344;
+      --warn: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 28px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 40px;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 150px;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: var(--accent);
+      letter-spacing: 0;
+    }
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .wide {
+      grid-column: span 2;
+    }
+    .flow {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+    .step {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 96px;
+    }
+    .step strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .step span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #123626;
+      color: var(--accent);
+      font-size: 13px;
+      border: 1px solid #23724d;
+    }
+    @media (max-width: 860px) {
+      .grid, .flow { grid-template-columns: 1fr; }
+      .wide { grid-column: auto; }
+      h1 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hover Typing 已接入 HoverText</h1>
+    <p class="subtitle">目标：补上 Apple Hover Typing 式的输入放大体验，让 Windows 用户在输入时看到大号、高对比度悬浮文本。</p>
+
+    <section class="grid">
+      <article class="card">
+        <h2>新增能力</h2>
+        <ul>
+          <li>读取当前聚焦文本框</li>
+          <li>输入内容实时放大显示</li>
+          <li>跟随文本框锚点定位</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Apple 行为对齐</h2>
+        <ul>
+          <li>输入时出现大字预览</li>
+          <li>Esc 临时隐藏</li>
+          <li>文本变化后自动恢复</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>开关入口</h2>
+        <ul>
+          <li>设置窗口新增输入放大</li>
+          <li>托盘菜单新增 Hover Typing</li>
+          <li>旧配置默认保持关闭</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>验证结果</h2>
+        <p>全量测试 55/55 通过，Release 构建通过，真实 WPF 文本框冒烟显示成功。</p>
+        <span class="badge">FINAL_HOVER_TYPING_DISPLAY_OK</span>
+      </article>
+    </section>
+
+    <section class="flow">
+      <div class="step"><strong>1. 聚焦文本框</strong><span>UI Automation 读取当前可编辑元素。</span></div>
+      <div class="step"><strong>2. 提取文本</strong><span>优先 ValuePattern，回退 TextPattern。</span></div>
+      <div class="step"><strong>3. 状态判断</strong><span>HoverTypingSession 处理显示、隐藏和恢复。</span></div>
+      <div class="step"><strong>4. 悬浮显示</strong><span>复用 OverlayWindow 的大字、高对比度样式。</span></div>
+      <div class="step"><strong>5. 防回归</strong><span>新增设置、键盘、分类器和状态机测试。</span></div>
+    </section>
+  </main>
+</body>
+</html>

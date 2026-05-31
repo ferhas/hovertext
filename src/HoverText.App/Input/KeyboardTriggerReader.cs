@@ -14,6 +14,7 @@ public sealed class KeyboardTriggerReader
     private const int VkRightControl = 0xA3;
     private const int VkLeftMenu = 0xA4;
     private const int VkRightMenu = 0xA5;
+    private const int VkEscape = 0x1B;
     private readonly Func<int, short> getKeyState;
 
     public KeyboardTriggerReader()
@@ -36,6 +37,12 @@ public sealed class KeyboardTriggerReader
         };
 
         return IsKeyDown(leftKey) || IsKeyDown(rightKey);
+    }
+
+    public bool IsEscapePressed()
+    {
+        short state = getKeyState(VkEscape);
+        return (state & 0x8000) != 0 || (state & 0x0001) != 0;
     }
 
     private bool IsKeyDown(int virtualKey)

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenAI Codex for Open Source 申请研究</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1b1f24;
+      --muted: #626e7c;
+      --line: #d8dee4;
+      --panel: #ffffff;
+      --bg: #f5f7fa;
+      --green: #087f5b;
+      --blue: #2557a7;
+      --amber: #946200;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 20px 40px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: 0;
+    }
+    .lead {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    section, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    section { margin-bottom: 16px; }
+    .span-7 { grid-column: span 7; }
+    .span-5 { grid-column: span 5; }
+    .span-4 { grid-column: span 4; }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .green { background: #dff7ed; color: var(--green); }
+    .blue { background: #e5efff; color: var(--blue); }
+    .amber { background: #fff4ce; color: var(--amber); }
+    .red { background: #ffe3df; color: var(--red); }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 7px 0; }
+    a { color: var(--blue); }
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 132px;
+    }
+    .metric strong {
+      font-size: 28px;
+      line-height: 1.1;
+    }
+    .metric span { color: var(--muted); }
+    .steps {
+      counter-reset: step;
+      display: grid;
+      gap: 10px;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+    }
+    footer {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 18px;
+    }
+    @media (max-width: 760px) {
+      .span-7, .span-5, .span-4 { grid-column: 1 / -1; }
+      main { padding: 22px 14px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OpenAI 6 个月套餐：Codex for Open Source</h1>
+      <p class="lead">这是 OpenAI 面向开源维护者的申请制计划。核心依据是公开 GitHub 仓库、维护者身份和项目生态价值，不是 GitHub Student Developer Pack 的学生福利。</p>
+    </header>
+
+    <div class="grid">
+      <section class="span-7">
+        <div class="badge green">结论</div>
+        <h2>真实存在，但不是人人可领</h2>
+        <ul>
+          <li>官方页面写明：开源维护者可申请 API credits、6 个月 ChatGPT Pro with Codex，以及 Codex Security 条件访问。</li>
+          <li>选中后可获得的 Pro 权益用于日常编码、问题分流、代码审查和维护者工作流。</li>
+          <li>OpenAI 滚动审核，提交申请不保证获批；项目影响力和活跃维护证据很关键。</li>
+        </ul>
+      </section>
+
+      <section class="span-5">
+        <div class="badge blue">入口</div>
+        <h2>官方申请页</h2>
+        <ul>
+          <li><a href="https://developers.openai.com/community/codex-for-oss">项目介绍：developers.openai.com/community/codex-for-oss</a></li>
+          <li><a href="https://openai.com/form/codex-for-oss/">申请表：openai.com/form/codex-for-oss</a></li>
+          <li><a href="https://developers.openai.com/codex/codex-for-oss-terms">条款：Codex for Open Source Program Terms</a></li>
+        </ul>
+      </section>
+
+      <div class="card span-4 metric">
+        <div class="badge green">权益</div>
+        <strong>6 个月</strong>
+        <span>ChatGPT Pro，包含 Codex 使用</span>
+      </div>
+      <div class="card span-4 metric">
+        <div class="badge blue">可选权益</div>
+        <strong>API credits</strong>
+        <span>用于 PR review、维护自动化、发布流程等 OSS 核心工作</span>
+      </div>
+      <div class="card span-4 metric">
+        <div class="badge amber">筛选重点</div>
+        <strong>维护证据</strong>
+        <span>stars、下载量、issue/PR、release、生态重要性</span>
+      </div>
+
+      <section class="span-7">
+        <div class="badge amber">申请材料</div>
+        <h2>表单会要求这些信息</h2>
+        <ul>
+          <li>姓名、与 ChatGPT 账号关联的邮箱。</li>
+          <li>GitHub username，需要设置为公开可见。</li>
+          <li>GitHub repository URL，仓库需要公开。</li>
+          <li>说明你是 primary maintainer 还是 core maintainer。</li>
+          <li>解释项目为什么符合条件，例如 GitHub stars、月下载量、生态价值。</li>
+          <li>OpenAI Organization ID，以及你如何使用 API credits。</li>
+        </ul>
+      </section>
+
+      <section class="span-5">
+        <div class="badge red">注意事项</div>
+        <h2>别踩这几个坑</h2>
+        <ul>
+          <li>权益个人、限时、不可转让，也不能出售或共享。</li>
+          <li>OpenAI 可能要求验证身份、仓库归属、维护者状态或控制权。</li>
+          <li>不要提交机密信息；条款明确申请材料不按保密材料处理。</li>
+          <li>Codex Security/API credits 可能需要额外审核。</li>
+        </ul>
+      </section>
+    </div>
+
+    <section>
+      <div class="badge blue">建议路径</div>
+      <h2>提高通过率的准备顺序</h2>
+      <div class="steps">
+        <div class="step">把 GitHub 个人资料和目标仓库设为 public，确认 README、license、release、贡献指南齐全。</div>
+        <div class="step">整理项目数据：stars、forks、downloads、npm/PyPI/NuGet 等包下载量、活跃用户或被依赖情况。</div>
+        <div class="step">列出维护证据：近期 PR review、issue triage、release 记录、安全修复、核心贡献提交。</div>
+        <div class="step">用 500 字符内写清项目生态价值，再用 500 字符内写清 API credits 的实际用法。</div>
+      </div>
+    </section>
+
+    <footer>研究时间：2026-05-31。资料来自 OpenAI 官方开发者页面、官方申请表、官方项目条款，以及 GitHub Education 官方页面核对。</footer>
+  </main>
+</body>
+</html>

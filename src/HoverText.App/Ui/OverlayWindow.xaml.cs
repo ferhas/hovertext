@@ -25,6 +25,7 @@ public partial class OverlayWindow : Window
     private PixelSize? lastMagnifierDisplaySize;
     private IntPtr windowHandle;
     private bool isUpdatingInputEditor;
+    private ProbeDisplayKind lastDisplayKind = ProbeDisplayKind.Empty;
 
     public event Action<string>? InputTextEdited;
 
@@ -43,6 +44,7 @@ public partial class OverlayWindow : Window
         PointerPoint cursor,
         BitmapSource? magnifierCapture)
     {
+        bool wasInputMode = lastDisplayKind == ProbeDisplayKind.Input;
         OverlayLayoutFingerprint layoutFingerprint = OverlayLayoutFingerprint.From(result, settings);
         bool needsLayout = !IsVisible || lastLayoutFingerprint != layoutFingerprint;
 
@@ -88,13 +90,20 @@ public partial class OverlayWindow : Window
             Show();
         }
 
-        SetInteractive(result.DisplayKind == ProbeDisplayKind.Input);
-        if (result.DisplayKind == ProbeDisplayKind.Input)
+        bool isInputMode = result.DisplayKind == ProbeDisplayKind.Input;
+        bool shouldFocusInputEditor = OverlayInputEditorPolicy.ShouldFocusEditor(
+            result.DisplayKind,
+            wasInputMode,
+            InputEditor.IsKeyboardFocusWithin);
+        SetInteractive(isInputMode);
+        if (shouldFocusInputEditor)
         {
             Activate();
             InputEditor.Focus();
             InputEditor.CaretIndex = InputEditor.Text.Length;
         }
+
+        lastDisplayKind = result.DisplayKind;
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -198,12 +207,14 @@ public partial class OverlayWindow : Window
 
     private void UpdateDisplayText(ProbeResult result)
     {
-        string displayText = result.DisplayKind == ProbeDisplayKind.Input && string.IsNullOrWhiteSpace(result.DisplayText)
-            ? " "
-            : result.DisplayText;
+        string displayText = OverlayInputEditorPolicy.PrepareText(result.DisplayText, result.DisplayKind);
         if (result.DisplayKind == ProbeDisplayKind.Input)
         {
-            if (InputEditor.Text != displayText)
+            if (OverlayInputEditorPolicy.ShouldReplaceEditorText(
+                    result.DisplayKind,
+                    InputEditor.IsKeyboardFocusWithin,
+                    InputEditor.Text,
+                    displayText))
             {
                 isUpdatingInputEditor = true;
                 try

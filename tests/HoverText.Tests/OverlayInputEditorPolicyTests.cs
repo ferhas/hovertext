@@ -49,4 +49,13 @@ public sealed class OverlayInputEditorPolicyTests
 
         Assert.IsTrue(shouldFocus);
     }
+
+    [TestMethod]
+    public void ShouldKeepOpenWithoutTrigger_keeps_visible_input_editor_even_before_focus_lands()
+    {
+        bool shouldKeepOpen = OverlayInputEditorPolicy.ShouldKeepOpenWithoutTrigger(
+            isEditorOpen: true);
+
+        Assert.IsTrue(shouldKeepOpen);
+    }
 }

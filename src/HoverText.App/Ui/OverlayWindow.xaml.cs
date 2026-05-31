@@ -1,8 +1,10 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Forms = System.Windows.Forms;
 using HoverText.Core.Overlay;
 using HoverText.Core.Platform;
@@ -17,6 +19,11 @@ public partial class OverlayWindow : Window
     private const int WsExTransparent = 0x00000020;
     private const int WsExToolWindow = 0x00000080;
     private const int WsExNoActivate = 0x08000000;
+    private const uint SwpNoSize = 0x0001;
+    private const uint SwpNoMove = 0x0002;
+    private const uint SwpNoZOrder = 0x0004;
+    private const uint SwpNoActivate = 0x0010;
+    private const uint SwpFrameChanged = 0x0020;
     private OverlayLayoutFingerprint? lastLayoutFingerprint;
     private string? cachedForegroundColor;
     private string? cachedBackgroundColor;
@@ -32,6 +39,9 @@ public partial class OverlayWindow : Window
     public bool IsInputEditorActive => IsVisible
         && InputEditor.Visibility == Visibility.Visible
         && InputEditor.IsKeyboardFocusWithin;
+
+    public bool IsInputEditorOpen => IsVisible
+        && InputEditor.Visibility == Visibility.Visible;
 
     public OverlayWindow()
     {
@@ -85,22 +95,21 @@ public partial class OverlayWindow : Window
             PositionNearCursor(cursor);
         }
 
+        bool isInputMode = result.DisplayKind == ProbeDisplayKind.Input;
+        SetInteractive(isInputMode);
         if (!IsVisible)
         {
+            ShowActivated = isInputMode;
             Show();
         }
 
-        bool isInputMode = result.DisplayKind == ProbeDisplayKind.Input;
         bool shouldFocusInputEditor = OverlayInputEditorPolicy.ShouldFocusEditor(
             result.DisplayKind,
             wasInputMode,
             InputEditor.IsKeyboardFocusWithin);
-        SetInteractive(isInputMode);
         if (shouldFocusInputEditor)
         {
-            Activate();
-            InputEditor.Focus();
-            InputEditor.CaretIndex = InputEditor.Text.Length;
+            FocusInputEditor(moveCaretToEnd: !wasInputMode);
         }
 
         lastDisplayKind = result.DisplayKind;
@@ -110,8 +119,20 @@ public partial class OverlayWindow : Window
     {
         base.OnSourceInitialized(e);
         windowHandle = new WindowInteropHelper(this).Handle;
-        SetInteractive(false);
+        SetInteractive(InputEditor.Visibility == Visibility.Visible);
         EnableCaptureExclusion();
+    }
+
+    public void FocusInputEditor(bool moveCaretToEnd = false)
+    {
+        if (InputEditor.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        SetInteractive(true);
+        TryFocusInputEditor(moveCaretToEnd);
+        _ = Dispatcher.BeginInvoke(() => TryFocusInputEditor(moveCaretToEnd), DispatcherPriority.Input);
     }
 
     private void ApplySettings(HoverTextSettings settings, ProbeResult result)
@@ -330,6 +351,31 @@ public partial class OverlayWindow : Window
         }
 
         SetWindowLong(windowHandle, GwlExStyle, style);
+        SetWindowPos(
+            windowHandle,
+            IntPtr.Zero,
+            0,
+            0,
+            0,
+            0,
+            SwpNoMove | SwpNoSize | SwpNoZOrder | SwpNoActivate | SwpFrameChanged);
+    }
+
+    private void TryFocusInputEditor(bool moveCaretToEnd)
+    {
+        try
+        {
+            Activate();
+            InputEditor.Focus();
+            Keyboard.Focus(InputEditor);
+            if (moveCaretToEnd || InputEditor.CaretIndex < 0 || InputEditor.CaretIndex > InputEditor.Text.Length)
+            {
+                InputEditor.CaretIndex = InputEditor.Text.Length;
+            }
+        }
+        catch
+        {
+        }
     }
 
     private void EnableCaptureExclusion()
@@ -350,6 +396,16 @@ public partial class OverlayWindow : Window
 
     [DllImport("user32.dll")]
     private static extern int SetWindowLong(IntPtr windowHandle, int index, int newLong);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(
+        IntPtr windowHandle,
+        IntPtr windowHandleInsertAfter,
+        int x,
+        int y,
+        int width,
+        int height,
+        uint flags);
 
     [DllImport("user32.dll")]
     private static extern bool SetWindowDisplayAffinity(IntPtr windowHandle, WindowCaptureAffinity affinity);

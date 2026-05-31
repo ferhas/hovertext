@@ -85,8 +85,9 @@ public sealed class HoverTextController : IDisposable
             PointerPoint point = cursorProvider.GetCursorPosition();
             if (!triggerReader.IsPressed(settings.TriggerKey))
             {
-                if (overlayWindow.IsInputEditorActive)
+                if (OverlayInputEditorPolicy.ShouldKeepOpenWithoutTrigger(overlayWindow.IsInputEditorOpen))
                 {
+                    overlayWindow.FocusInputEditor();
                     return;
                 }
 

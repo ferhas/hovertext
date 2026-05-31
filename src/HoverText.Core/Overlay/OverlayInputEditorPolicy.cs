@@ -30,4 +30,9 @@ public static class OverlayInputEditorPolicy
         return displayKind == ProbeDisplayKind.Input
             && (!wasInputMode || !isEditorFocused);
     }
+
+    public static bool ShouldKeepOpenWithoutTrigger(bool isEditorOpen)
+    {
+        return isEditorOpen;
+    }
 }

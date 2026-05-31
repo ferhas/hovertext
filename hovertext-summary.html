@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HoverText 实现总结</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #5d697c;
+      --line: #d9e0ea;
+      --paper: #f7f9fc;
+      --panel: #ffffff;
+      --blue: #2f6fed;
+      --green: #1d8f63;
+      --amber: #b56a00;
+      --dark: #273142;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 24px 56px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      align-items: end;
+      padding: 28px 0 30px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 44px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      background: #eef3fb;
+      border: 1px solid #d5deec;
+      border-radius: 6px;
+      padding: 2px 6px;
+      color: #19325f;
+    }
+
+    .status {
+      background: var(--dark);
+      color: white;
+      padding: 18px 20px;
+      border-radius: 8px;
+    }
+
+    .status strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+
+    .status span {
+      color: #d6deea;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(31, 42, 68, 0.06);
+    }
+
+    .metric {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .metric strong {
+      font-size: 34px;
+      color: var(--green);
+    }
+
+    .metric span {
+      color: var(--muted);
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .step {
+      position: relative;
+      min-height: 118px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdff;
+    }
+
+    .step::after {
+      content: "";
+      position: absolute;
+      right: -13px;
+      top: 50%;
+      width: 12px;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .step:last-child::after {
+      display: none;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: white;
+      background: var(--blue);
+    }
+
+    .tag.green {
+      background: var(--green);
+    }
+
+    .tag.amber {
+      background: var(--amber);
+    }
+
+    .modules {
+      display: grid;
+      gap: 10px;
+    }
+
+    .module {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .module:last-child {
+      border-bottom: 0;
+    }
+
+    .module strong {
+      color: var(--ink);
+    }
+
+    .commands {
+      display: grid;
+      gap: 12px;
+    }
+
+    .command {
+      padding: 14px 16px;
+      background: #101827;
+      color: #dbe7ff;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      header,
+      .cols-2,
+      .cols-3,
+      .pipeline {
+        grid-template-columns: 1fr;
+      }
+
+      .step::after {
+        display: none;
+      }
+
+      .module {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <section>
+        <h1>HoverText 已实现</h1>
+        <p>一个 Windows 悬浮文字放大工具：按住触发键读取鼠标下文字，显示大字号悬浮框，失败时依次进入 OCR 与像素放大兜底。</p>
+      </section>
+      <aside class="status">
+        <strong>可构建，可测试，可启动</strong>
+        <span>Release 构建 0 警告 0 错误，启动 smoke test 保持运行 3 秒。</span>
+      </aside>
+    </header>
+
+    <section class="grid cols-3">
+      <article class="card">
+        <h2>测试结果</h2>
+        <div class="metric"><strong>8</strong><span>项核心测试通过</span></div>
+        <p>覆盖探测链路、悬浮定位、默认设置与 JSON 设置持久化。</p>
+      </article>
+      <article class="card">
+        <h2>技术栈</h2>
+        <p>C#、.NET 8、WPF、Windows UI Automation、Win32 API、Windows Forms 托盘。</p>
+      </article>
+      <article class="card">
+        <h2>交互方式</h2>
+        <p>默认按住 <code>Alt</code> 显示悬浮放大内容；托盘可打开设置、切换 OCR、切换开机自启和退出。</p>
+      </article>
+    </section>
+
+    <section class="card grid">
+      <h2>功能链路</h2>
+      <div class="pipeline">
+        <div class="step">
+          <span class="tag">输入</span>
+          <h3>触发键轮询</h3>
+          <p>每 100 到 300ms 检查 Alt、Ctrl 或 Shift，并读取鼠标位置。</p>
+        </div>
+        <div class="step">
+          <span class="tag">优先</span>
+          <h3>UI Automation</h3>
+          <p>尝试 TextPattern、ValuePattern、Name 与 HelpText。</p>
+        </div>
+        <div class="step">
+          <span class="tag amber">兜底</span>
+          <h3>Tesseract OCR</h3>
+          <p>如果系统存在 tesseract.exe，截取鼠标附近区域识别文字。</p>
+        </div>
+        <div class="step">
+          <span class="tag amber">最终</span>
+          <h3>像素放大</h3>
+          <p>文字不可读时显示鼠标周边截图，作为可视放大兜底。</p>
+        </div>
+        <div class="step">
+          <span class="tag green">输出</span>
+          <h3>置顶悬浮窗</h3>
+          <p>鼠标穿透、自动避开屏幕边缘，按设置展示字号和配色。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid cols-2">
+      <article class="card">
+        <h2>模块结构</h2>
+        <div class="modules">
+          <div class="module"><strong>HoverText.Core</strong><p>纯逻辑核心：探测管线、设置模型、悬浮框定位算法。</p></div>
+          <div class="module"><strong>HoverText.App</strong><p>WPF 应用入口、控制器、托盘、设置窗口、平台能力适配。</p></div>
+          <div class="module"><strong>Input</strong><p>Win32 触发键检测与鼠标坐标读取。</p></div>
+          <div class="module"><strong>Probing</strong><p>UIA、Tesseract CLI OCR、屏幕截图放大。</p></div>
+          <div class="module"><strong>Ui</strong><p>OverlayWindow、SettingsWindow、TrayIconService。</p></div>
+        </div>
+      </article>
+      <article class="card">
+        <h2>验证证据</h2>
+        <div class="modules">
+          <div class="module"><strong>dotnet test</strong><p>失败 0，通过 8，跳过 0。</p></div>
+          <div class="module"><strong>Release build</strong><p>已成功生成，0 个警告，0 个错误。</p></div>
+          <div class="module"><strong>smoke test</strong><p>Release 可执行文件启动后 3 秒仍在运行，随后主动停止。</p></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>运行命令</h2>
+      <div class="commands">
+        <div class="command">.\.dotnet\dotnet.exe run --project .\src\HoverText.App\HoverText.App.csproj</div>
+        <div class="command">.\src\HoverText.App\bin\Release\net8.0-windows\HoverText.App.exe</div>
+        <div class="command">.\.dotnet\dotnet.exe test .\HoverText.sln</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

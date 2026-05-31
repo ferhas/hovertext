@@ -8,6 +8,8 @@ HoverText is a low-vision accessibility utility that brings cursor-following, hi
 
 [Read this in Chinese](README.zh-CN.md)
 
+[Download the latest Windows EXE](https://github.com/ferhas/hovertext/releases/latest/download/HoverText-v0.1.0-win-x64.exe)
+
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-8-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![Accessibility](https://img.shields.io/badge/Accessibility-Low%20Vision-2E7D32?style=for-the-badge)
@@ -43,6 +45,14 @@ Windows users deserve the same kind of lightweight help. HoverText is built to f
 - Anyone who wants an Apple Hover Text-like experience on Windows
 
 ## Run
+
+For most users, download the standalone EXE from the latest release:
+
+```text
+https://github.com/ferhas/hovertext/releases/latest/download/HoverText-v0.1.0-win-x64.exe
+```
+
+For development, run from source:
 
 ```powershell
 .\.dotnet\dotnet.exe run --project .\src\HoverText.App\HoverText.App.csproj

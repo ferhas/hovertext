@@ -3,11 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="HoverText 设置"
         Width="660"
-        Height="810"
+        Height="760"
         MinWidth="660"
-        MinHeight="810"
+        MinHeight="760"
         MaxWidth="660"
-        MaxHeight="810"
+        MaxHeight="760"
         ResizeMode="NoResize"
         Background="#080d18"
         WindowStartupLocation="CenterScreen">
@@ -152,7 +152,6 @@
                     <RowDefinition Height="44"/>
                     <RowDefinition Height="44"/>
                     <RowDefinition Height="44"/>
-                    <RowDefinition Height="44"/>
                     <RowDefinition Height="50"/>
                 </Grid.RowDefinitions>
 
@@ -201,14 +200,11 @@
                 <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="放大镜模式"/>
                 <CheckBox x:Name="MagnifierBox" Grid.Row="6" Grid.Column="1" Content="启用放大镜模式"/>
 
-                <TextBlock Grid.Row="7" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="输入放大"/>
-                <CheckBox x:Name="HoverTypingBox" Grid.Row="7" Grid.Column="1" Content="输入时自动显示放大输入框"/>
+                <TextBlock Grid.Row="7" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="系统启动"/>
+                <CheckBox x:Name="StartupBox" Grid.Row="7" Grid.Column="1" Content="开机自动启动 HoverText"/>
 
-                <TextBlock Grid.Row="8" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="系统启动"/>
-                <CheckBox x:Name="StartupBox" Grid.Row="8" Grid.Column="1" Content="开机自动启动 HoverText"/>
-
-                <TextBlock Grid.Row="9" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="默认值"/>
-                <Button Grid.Row="9" Grid.Column="1" Content="恢复默认设置" HorizontalAlignment="Left" Click="Reset_Click"/>
+                <TextBlock Grid.Row="8" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="默认值"/>
+                <Button Grid.Row="8" Grid.Column="1" Content="恢复默认设置" HorizontalAlignment="Left" Click="Reset_Click"/>
             </Grid>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">

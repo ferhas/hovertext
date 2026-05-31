@@ -48,11 +48,6 @@ public sealed class JsonSettingsStore(string path)
             settings = settings with { IsMagnifierEnabled = defaults.IsMagnifierEnabled };
         }
 
-        if (!propertyNames.Contains(nameof(HoverTextSettings.IsHoverTypingEnabled)))
-        {
-            settings = settings with { IsHoverTypingEnabled = defaults.IsHoverTypingEnabled };
-        }
-
         return settings;
     }
 

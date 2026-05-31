@@ -102,38 +102,6 @@ public sealed class TextProbePipelineTests
     }
 
     [TestMethod]
-    public async Task ProbeAsync_preserves_input_text_kind_for_editing_loupe()
-    {
-        var automation = new RecordingTextProbeSource(
-            TextProbeResult.Found("hello world", ProbeSource.UiAutomation, ProbeDisplayKind.Input));
-        var ocr = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.Ocr));
-        var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 2.0));
-        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
-
-        ProbeResult result = await pipeline.ProbeAsync(new PointerPoint(32, 64), HoverTextSettings.CreateDefault());
-
-        Assert.AreEqual(ProbeDisplayKind.Input, result.DisplayKind);
-        Assert.AreEqual("hello world", result.DisplayText);
-        Assert.AreEqual(0, magnifier.Calls);
-    }
-
-    [TestMethod]
-    public async Task ProbeAsync_preserves_empty_input_kind_without_magnifier()
-    {
-        var automation = new RecordingTextProbeSource(
-            TextProbeResult.Found("", ProbeSource.UiAutomation, ProbeDisplayKind.Input));
-        var ocr = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.Ocr));
-        var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 2.0));
-        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
-
-        ProbeResult result = await pipeline.ProbeAsync(new PointerPoint(32, 64), HoverTextSettings.CreateDefault());
-
-        Assert.AreEqual(ProbeDisplayKind.Input, result.DisplayKind);
-        Assert.AreEqual("", result.DisplayText);
-        Assert.AreEqual(0, magnifier.Calls);
-    }
-
-    [TestMethod]
     public async Task ProbeAsync_skips_ocr_when_setting_is_disabled()
     {
         var automation = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.UiAutomation));

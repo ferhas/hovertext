@@ -45,11 +45,4 @@ public sealed class OverlayTextSizingTests
         Assert.AreEqual(56, fontSize);
     }
 
-    [TestMethod]
-    public void CalculateFontSize_keeps_input_loupe_large()
-    {
-        double fontSize = OverlayTextSizing.CalculateFontSize(40, "正在输入", ProbeDisplayKind.Input);
-
-        Assert.AreEqual(76, fontSize);
-    }
 }

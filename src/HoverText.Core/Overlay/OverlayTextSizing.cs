@@ -11,11 +11,6 @@ public static class OverlayTextSizing
 
     public static double CalculateFontSize(int configuredFontSize, string text, ProbeDisplayKind displayKind)
     {
-        if (displayKind == ProbeDisplayKind.Input)
-        {
-            return Math.Max(configuredFontSize, 76);
-        }
-
         if (displayKind == ProbeDisplayKind.Magnifier || string.IsNullOrWhiteSpace(text))
         {
             return configuredFontSize;

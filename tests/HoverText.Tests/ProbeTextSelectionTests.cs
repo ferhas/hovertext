@@ -6,6 +6,12 @@ namespace HoverText.Tests;
 public sealed class ProbeTextSelectionTests
 {
     [TestMethod]
+    public void ProbeDisplayKind_does_not_include_input_editor_mode()
+    {
+        CollectionAssert.DoesNotContain(Enum.GetNames<ProbeDisplayKind>(), "Input");
+    }
+
+    [TestMethod]
     public void ForActionLike_prefers_name_over_help_text()
     {
         ProbeTextSelection selection = ProbeTextSelection.ForActionLike(

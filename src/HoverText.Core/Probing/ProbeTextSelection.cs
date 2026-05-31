@@ -7,11 +7,6 @@ public readonly record struct ProbeTextSelection(string? Text, ProbeDisplayKind 
         return new ProbeTextSelection(text, ProbeDisplayKind.Text);
     }
 
-    public static ProbeTextSelection ForInput(string? text)
-    {
-        return new ProbeTextSelection(text, ProbeDisplayKind.Input);
-    }
-
     public static ProbeTextSelection ForActionLike(string? name, string? value, string? helpText)
     {
         string? automationText = FirstNonBlank(name, value);

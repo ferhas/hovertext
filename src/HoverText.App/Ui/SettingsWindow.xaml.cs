@@ -31,7 +31,6 @@ public partial class SettingsWindow : Window
         BackgroundBox.Text = value.Background;
         OcrBox.IsChecked = value.IsOcrEnabled;
         MagnifierBox.IsChecked = value.IsMagnifierEnabled;
-        HoverTypingBox.IsChecked = value.IsHoverTypingEnabled;
         StartupBox.IsChecked = value.StartWithWindows;
         UpdateSliderLabels();
         UpdateTriggerButtons();
@@ -48,7 +47,6 @@ public partial class SettingsWindow : Window
             Background = BackgroundBox.Text,
             IsOcrEnabled = OcrBox.IsChecked == true,
             IsMagnifierEnabled = MagnifierBox.IsChecked == true,
-            IsHoverTypingEnabled = HoverTypingBox.IsChecked == true,
             StartWithWindows = StartupBox.IsChecked == true
         };
 

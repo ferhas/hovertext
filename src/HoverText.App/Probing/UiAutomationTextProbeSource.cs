@@ -6,36 +6,15 @@ using HoverText.Core.Probing;
 
 namespace HoverText.App.Probing;
 
-public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInputProbeSource
+public sealed class UiAutomationTextProbeSource : ITextProbeSource
 {
-    private AutomationElement? lastFocusedInput;
-
     public Task<TextProbeResult> TryReadAsync(PointerPoint point, CancellationToken cancellationToken = default)
     {
         try
         {
-            TextProbeResult pointResult = TryReadElement(
+            return Task.FromResult(TryReadElement(
                 AutomationElement.FromPoint(new System.Windows.Point(point.X, point.Y)),
-                point,
-                requireInput: false);
-            if (pointResult.DisplayKind == ProbeDisplayKind.Input)
-            {
-                return Task.FromResult(pointResult);
-            }
-
-            TextProbeResult focusedInputResult = TryReadFocusedInput(point);
-            if (focusedInputResult.DisplayKind == ProbeDisplayKind.Input
-                && IsPointInside(focusedInputResult.AnchorBounds, point))
-            {
-                return Task.FromResult(focusedInputResult);
-            }
-
-            if (pointResult.HasText)
-            {
-                return Task.FromResult(pointResult);
-            }
-
-            return Task.FromResult(focusedInputResult.HasText ? focusedInputResult : pointResult);
+                point));
         }
         catch
         {
@@ -43,55 +22,14 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         }
     }
 
-    public Task<TextProbeResult> TryReadFocusedInputAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            return Task.FromResult(TryReadFocusedInput(null, strictTextInput: true));
-        }
-        catch
-        {
-            return Task.FromResult(TextProbeResult.None(ProbeSource.UiAutomation));
-        }
-    }
-
-    public Task<bool> TryWriteFocusedInputAsync(string text, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (lastFocusedInput is null || IsPasswordElement(lastFocusedInput))
-            {
-                return Task.FromResult(false);
-            }
-
-            if (!lastFocusedInput.TryGetCurrentPattern(ValuePattern.Pattern, out object pattern))
-            {
-                return Task.FromResult(false);
-            }
-
-            var valuePattern = (ValuePattern)pattern;
-            if (valuePattern.Current.IsReadOnly)
-            {
-                return Task.FromResult(false);
-            }
-
-            valuePattern.SetValue(text);
-            return Task.FromResult(true);
-        }
-        catch
-        {
-            return Task.FromResult(false);
-        }
-    }
-
-    private TextProbeResult TryReadElement(AutomationElement? element, PointerPoint? point, bool requireInput, bool strictTextInput = false)
+    private TextProbeResult TryReadElement(AutomationElement? element, PointerPoint? point)
     {
         if (element is null)
         {
             return TextProbeResult.None(ProbeSource.UiAutomation);
         }
 
-        element = requireInput ? FindInputElement(element, strictTextInput) : FindInputElement(element, strictTextInput: false) ?? element;
+        element = FindInputElement(element) ?? element;
         if (element is null || IsPasswordElement(element))
         {
             return TextProbeResult.None(ProbeSource.UiAutomation);
@@ -99,28 +37,11 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
 
         bool isInput = IsInputElement(element);
         ProbeTextSelection selection = isInput
-            ? ProbeTextSelection.ForInput(TryReadInputText(element))
+            ? ProbeTextSelection.ForText(TryReadInputText(element))
             : TryReadNonInputText(element, point);
         PixelRect? anchorBounds = TryGetBounds(element);
-        if (selection.DisplayKind == ProbeDisplayKind.Input && requireInput)
-        {
-            lastFocusedInput = element;
-        }
 
         return ToResult(selection.Text, selection.DisplayKind, anchorBounds);
-    }
-
-    private TextProbeResult TryReadFocusedInput(PointerPoint? point, bool strictTextInput = false)
-    {
-        try
-        {
-            AutomationElement focused = AutomationElement.FocusedElement;
-            return TryReadElement(focused, point, requireInput: true, strictTextInput);
-        }
-        catch
-        {
-            return TextProbeResult.None(ProbeSource.UiAutomation);
-        }
     }
 
     private static string? TryReadTextAtPoint(AutomationElement element, PointerPoint? point)
@@ -218,13 +139,12 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         return Equals(controlType, ControlType.Edit);
     }
 
-    private static AutomationElement? FindInputElement(AutomationElement? element, bool strictTextInput)
+    private static AutomationElement? FindInputElement(AutomationElement? element)
     {
         AutomationElement? current = element;
         for (int depth = 0; depth < 5 && current is not null; depth++)
         {
-            bool isInput = strictTextInput ? IsTextEntryElement(current) : IsInputElement(current);
-            if (isInput)
+            if (IsInputElement(current))
             {
                 return current;
             }
@@ -281,14 +201,12 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
 
     private static TextProbeResult ToResult(string? text, ProbeDisplayKind displayKind, PixelRect? anchorBounds)
     {
-        if (displayKind != ProbeDisplayKind.Input && string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text))
         {
             return TextProbeResult.None(ProbeSource.UiAutomation);
         }
 
-        string normalized = displayKind == ProbeDisplayKind.Input
-            ? NormalizeInputText(text ?? string.Empty)
-            : ProbeTextNormalizer.NormalizeNonInput(text);
+        string normalized = ProbeTextNormalizer.NormalizeNonInput(text);
         return TextProbeResult.Found(normalized, ProbeSource.UiAutomation, displayKind, anchorBounds);
     }
 
@@ -319,12 +237,4 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
             (int)Math.Round(bounds.Height));
     }
 
-    private static bool IsPointInside(PixelRect? bounds, PointerPoint point)
-    {
-        return bounds is null
-            || (point.X >= bounds.Value.Left
-                && point.X <= bounds.Value.Right
-                && point.Y >= bounds.Value.Top
-                && point.Y <= bounds.Value.Bottom);
-    }
 }

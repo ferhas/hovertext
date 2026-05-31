@@ -6,7 +6,6 @@ public enum ProbeDisplayKind
 {
     Text,
     Tooltip,
-    Input,
     Magnifier,
     Empty
 }
@@ -24,7 +23,7 @@ public sealed record TextProbeResult(
         ProbeDisplayKind displayKind = ProbeDisplayKind.Text,
         PixelRect? anchorBounds = null)
     {
-        string displayText = displayKind == ProbeDisplayKind.Input ? text : text.Trim();
+        string displayText = text.Trim();
         return new TextProbeResult(true, displayText, source, displayKind, anchorBounds);
     }
 

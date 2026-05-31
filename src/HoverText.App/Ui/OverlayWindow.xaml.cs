@@ -1,10 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Forms = System.Windows.Forms;
 using HoverText.Core.Overlay;
 using HoverText.Core.Platform;
@@ -31,17 +29,6 @@ public partial class OverlayWindow : Window
     private System.Windows.Media.Brush backgroundBrush = System.Windows.Media.Brushes.Black;
     private PixelSize? lastMagnifierDisplaySize;
     private IntPtr windowHandle;
-    private bool isUpdatingInputEditor;
-    private ProbeDisplayKind lastDisplayKind = ProbeDisplayKind.Empty;
-
-    public event Action<string>? InputTextEdited;
-
-    public bool IsInputEditorActive => IsVisible
-        && InputEditor.Visibility == Visibility.Visible
-        && InputEditor.IsKeyboardFocusWithin;
-
-    public bool IsInputEditorOpen => IsVisible
-        && InputEditor.Visibility == Visibility.Visible;
 
     public OverlayWindow()
     {
@@ -54,7 +41,6 @@ public partial class OverlayWindow : Window
         PointerPoint cursor,
         BitmapSource? magnifierCapture)
     {
-        bool wasInputMode = lastDisplayKind == ProbeDisplayKind.Input;
         OverlayLayoutFingerprint layoutFingerprint = OverlayLayoutFingerprint.From(result, settings);
         bool needsLayout = !IsVisible || lastLayoutFingerprint != layoutFingerprint;
 
@@ -78,7 +64,7 @@ public partial class OverlayWindow : Window
         }
 
         UpdateMagnifier(result, magnifierCapture, needsLayout);
-        UpdateDisplayText(result, wasInputMode);
+        UpdateDisplayText(result);
 
         if (needsLayout)
         {
@@ -86,53 +72,21 @@ public partial class OverlayWindow : Window
             lastLayoutFingerprint = layoutFingerprint;
         }
 
-        if (result.DisplayKind == ProbeDisplayKind.Input && result.AnchorBounds is not null)
-        {
-            PositionNearAnchor(result.AnchorBounds.Value);
-        }
-        else
-        {
-            PositionNearCursor(cursor);
-        }
+        PositionNearCursor(cursor);
 
-        bool isInputMode = result.DisplayKind == ProbeDisplayKind.Input;
-        SetInteractive(isInputMode);
+        SetInteractive(false);
         if (!IsVisible)
         {
-            ShowActivated = isInputMode;
             Show();
         }
-
-        bool shouldFocusInputEditor = OverlayInputEditorPolicy.ShouldFocusEditor(
-            result.DisplayKind,
-            wasInputMode,
-            InputEditor.IsKeyboardFocusWithin);
-        if (shouldFocusInputEditor)
-        {
-            FocusInputEditor(moveCaretToEnd: !wasInputMode);
-        }
-
-        lastDisplayKind = result.DisplayKind;
     }
 
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
         windowHandle = new WindowInteropHelper(this).Handle;
-        SetInteractive(InputEditor.Visibility == Visibility.Visible);
+        SetInteractive(false);
         EnableCaptureExclusion();
-    }
-
-    public void FocusInputEditor(bool moveCaretToEnd = false)
-    {
-        if (InputEditor.Visibility != Visibility.Visible)
-        {
-            return;
-        }
-
-        SetInteractive(true);
-        TryFocusInputEditor(moveCaretToEnd);
-        _ = Dispatcher.BeginInvoke(() => TryFocusInputEditor(moveCaretToEnd), DispatcherPriority.Input);
     }
 
     private void ApplySettings(HoverTextSettings settings, ProbeResult result)
@@ -149,8 +103,6 @@ public partial class OverlayWindow : Window
         DisplayText.Foreground = foregroundBrush;
         SourceLabel.Foreground = foregroundBrush;
         Shell.Background = backgroundBrush;
-        InputEditor.FontSize = targetFontSize;
-        InputEditor.Foreground = foregroundBrush;
     }
 
     private void ApplyDisplayKind(ProbeDisplayKind displayKind, HoverTextSettings settings)
@@ -161,23 +113,6 @@ public partial class OverlayWindow : Window
         Shell.MinHeight = 0;
         SourceLabel.Visibility = Visibility.Visible;
 
-        if (displayKind == ProbeDisplayKind.Input)
-        {
-            SourceLabel.Text = "Input";
-            SourceLabel.Visibility = Visibility.Collapsed;
-            Shell.Background = backgroundBrush;
-            Shell.BorderBrush = System.Windows.Media.Brushes.DeepSkyBlue;
-            Shell.BorderThickness = new Thickness(2);
-            Shell.CornerRadius = new CornerRadius(10);
-            Shell.MinWidth = 560;
-            Shell.MinHeight = 132;
-            DisplayText.Foreground = foregroundBrush;
-            DisplayText.Visibility = Visibility.Collapsed;
-            InputEditor.Visibility = Visibility.Visible;
-            return;
-        }
-
-        InputEditor.Visibility = Visibility.Collapsed;
         if (displayKind == ProbeDisplayKind.Tooltip)
         {
             SourceLabel.Text = "Tip";
@@ -226,52 +161,20 @@ public partial class OverlayWindow : Window
         lastMagnifierDisplaySize = null;
     }
 
-    private void UpdateDisplayText(ProbeResult result, bool wasInputMode)
+    private void UpdateDisplayText(ProbeResult result)
     {
-        string displayText = OverlayInputEditorPolicy.PrepareText(result.DisplayText, result.DisplayKind);
-        if (result.DisplayKind == ProbeDisplayKind.Input)
-        {
-            if (OverlayInputEditorPolicy.ShouldReplaceEditorText(
-                    result.DisplayKind,
-                    wasInputMode,
-                    InputEditor.IsKeyboardFocusWithin,
-                    InputEditor.Text,
-                    displayText))
-            {
-                isUpdatingInputEditor = true;
-                try
-                {
-                    InputEditor.Text = displayText;
-                }
-                finally
-                {
-                    isUpdatingInputEditor = false;
-                }
-            }
-
-            DisplayText.Visibility = Visibility.Collapsed;
-            return;
-        }
-
+        string displayText = result.DisplayText;
         if (DisplayText.Text != displayText)
         {
             DisplayText.Text = displayText;
         }
 
-        Visibility textVisibility = string.IsNullOrWhiteSpace(DisplayText.Text) && result.DisplayKind != ProbeDisplayKind.Input
+        Visibility textVisibility = string.IsNullOrWhiteSpace(DisplayText.Text)
             ? Visibility.Collapsed
             : Visibility.Visible;
         if (DisplayText.Visibility != textVisibility)
         {
             DisplayText.Visibility = textVisibility;
-        }
-    }
-
-    private void InputEditor_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-    {
-        if (!isUpdatingInputEditor)
-        {
-            InputTextEdited?.Invoke(InputEditor.Text);
         }
     }
 
@@ -282,17 +185,6 @@ public partial class OverlayWindow : Window
         var workArea = new PixelRect(area.Left, area.Top, area.Width, area.Height);
         var overlaySize = new PixelSize((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight));
         PixelRect placement = OverlayPlacement.PlaceNearCursor(cursor, overlaySize, workArea, margin: 8, offset: 18);
-        Left = placement.Left;
-        Top = placement.Top;
-    }
-
-    private void PositionNearAnchor(PixelRect anchor)
-    {
-        Forms.Screen screen = Forms.Screen.FromPoint(new System.Drawing.Point(anchor.Left + anchor.Width / 2, anchor.Top + anchor.Height / 2));
-        System.Drawing.Rectangle area = screen.WorkingArea;
-        var workArea = new PixelRect(area.Left, area.Top, area.Width, area.Height);
-        var overlaySize = new PixelSize((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight));
-        PixelRect placement = OverlayPlacement.PlaceNearAnchor(anchor, overlaySize, workArea, margin: 8, offset: 14);
         Left = placement.Left;
         Top = placement.Top;
     }
@@ -368,58 +260,6 @@ public partial class OverlayWindow : Window
             flags);
     }
 
-    private void TryFocusInputEditor(bool moveCaretToEnd)
-    {
-        try
-        {
-            BringOverlayToForeground();
-            Activate();
-            InputEditor.Focus();
-            Keyboard.Focus(InputEditor);
-            if (moveCaretToEnd || InputEditor.CaretIndex < 0 || InputEditor.CaretIndex > InputEditor.Text.Length)
-            {
-                InputEditor.CaretIndex = InputEditor.Text.Length;
-            }
-        }
-        catch
-        {
-        }
-    }
-
-    private void BringOverlayToForeground()
-    {
-        if (windowHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        IntPtr foregroundWindow = GetForegroundWindow();
-        uint currentThread = GetCurrentThreadId();
-        uint foregroundThread = foregroundWindow == IntPtr.Zero
-            ? 0
-            : GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
-        bool attached = false;
-
-        try
-        {
-            if (foregroundThread != 0 && foregroundThread != currentThread)
-            {
-                attached = AttachThreadInput(currentThread, foregroundThread, true);
-            }
-
-            BringWindowToTop(windowHandle);
-            SetForegroundWindow(windowHandle);
-            SetFocus(windowHandle);
-        }
-        finally
-        {
-            if (attached)
-            {
-                AttachThreadInput(currentThread, foregroundThread, false);
-            }
-        }
-    }
-
     private void EnableCaptureExclusion()
     {
         if (windowHandle == IntPtr.Zero)
@@ -448,27 +288,6 @@ public partial class OverlayWindow : Window
         int width,
         int height,
         uint flags);
-
-    [DllImport("user32.dll")]
-    private static extern bool BringWindowToTop(IntPtr windowHandle);
-
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr windowHandle);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SetFocus(IntPtr windowHandle);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    private static extern uint GetWindowThreadProcessId(IntPtr windowHandle, IntPtr processId);
-
-    [DllImport("kernel32.dll")]
-    private static extern uint GetCurrentThreadId();
-
-    [DllImport("user32.dll")]
-    private static extern bool AttachThreadInput(uint attachThreadId, uint attachToThreadId, bool attach);
 
     [DllImport("user32.dll")]
     private static extern bool SetWindowDisplayAffinity(IntPtr windowHandle, WindowCaptureAffinity affinity);

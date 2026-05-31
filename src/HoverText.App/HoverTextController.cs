@@ -12,13 +12,11 @@ public sealed class HoverTextController : IDisposable
 {
     private readonly OverlayWindow overlayWindow;
     private readonly TextProbePipeline pipeline;
-    private readonly IFocusedInputProbeSource focusedInputProbe;
     private readonly ScreenMagnifierFallback magnifier;
     private readonly KeyboardTriggerReader triggerReader;
     private readonly CursorPositionProvider cursorProvider;
     private readonly DispatcherTimer timer;
     private readonly DateTime startedAt = DateTime.UtcNow;
-    private readonly HoverTypingActivityGate hoverTypingActivityGate = HoverTypingActivityGate.CreateDefault();
     private bool isTicking;
     private HoverTextSettings settings;
     private ProbeResult? cachedMagnifierResult;
@@ -27,7 +25,6 @@ public sealed class HoverTextController : IDisposable
     public HoverTextController(
         OverlayWindow overlayWindow,
         TextProbePipeline pipeline,
-        IFocusedInputProbeSource focusedInputProbe,
         ScreenMagnifierFallback magnifier,
         KeyboardTriggerReader triggerReader,
         CursorPositionProvider cursorProvider,
@@ -35,12 +32,10 @@ public sealed class HoverTextController : IDisposable
     {
         this.overlayWindow = overlayWindow;
         this.pipeline = pipeline;
-        this.focusedInputProbe = focusedInputProbe;
         this.magnifier = magnifier;
         this.triggerReader = triggerReader;
         this.cursorProvider = cursorProvider;
         this.settings = settings;
-        overlayWindow.InputTextEdited += OnInputTextEdited;
         timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds)
@@ -57,7 +52,7 @@ public sealed class HoverTextController : IDisposable
     {
         settings = updatedSettings;
         timer.Interval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds);
-        if (!settings.IsMagnifierEnabled || !settings.IsHoverTypingEnabled)
+        if (!settings.IsMagnifierEnabled)
         {
             ClearMagnifierCache();
             overlayWindow.Hide();
@@ -68,7 +63,6 @@ public sealed class HoverTextController : IDisposable
     {
         timer.Stop();
         timer.Tick -= OnTick;
-        overlayWindow.InputTextEdited -= OnInputTextEdited;
         overlayWindow.Close();
     }
 
@@ -85,19 +79,8 @@ public sealed class HoverTextController : IDisposable
             PointerPoint point = cursorProvider.GetCursorPosition();
             if (!triggerReader.IsPressed(settings.TriggerKey))
             {
-                if (OverlayInputEditorPolicy.ShouldKeepOpenWithoutTrigger(overlayWindow.IsInputEditorOpen))
-                {
-                    overlayWindow.FocusInputEditor();
-                    return;
-                }
-
-                TimeSpan now = ElapsedSinceStart();
-                if (triggerReader.HasTypingActivity())
-                {
-                    hoverTypingActivityGate.RecordTypingActivity(now);
-                }
-
-                await ShowFocusedInputWithoutTrigger(point, hoverTypingActivityGate.HasRecentActivity(now));
+                ClearMagnifierCache();
+                overlayWindow.Hide();
                 return;
             }
 
@@ -151,28 +134,4 @@ public sealed class HoverTextController : IDisposable
         return DateTime.UtcNow - startedAt;
     }
 
-    private async Task ShowFocusedInputWithoutTrigger(PointerPoint point, bool hasRecentTypingActivity)
-    {
-        ClearMagnifierCache();
-        if (!settings.IsHoverTypingEnabled || !hasRecentTypingActivity)
-        {
-            overlayWindow.Hide();
-            return;
-        }
-
-        TextProbeResult textResult = await focusedInputProbe.TryReadFocusedInputAsync();
-        ProbeResult result = ProbeResult.FromText(textResult);
-        if (!HoverTypingPolicy.ShouldShowWithoutTrigger(settings, result, hasRecentTypingActivity))
-        {
-            overlayWindow.Hide();
-            return;
-        }
-
-        overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
-    }
-
-    private async void OnInputTextEdited(string text)
-    {
-        await focusedInputProbe.TryWriteFocusedInputAsync(text);
-    }
 }

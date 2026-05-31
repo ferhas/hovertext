@@ -8,6 +8,8 @@ namespace HoverText.App.Probing;
 
 public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInputProbeSource
 {
+    private AutomationElement? lastFocusedInput;
+
     public Task<TextProbeResult> TryReadAsync(PointerPoint point, CancellationToken cancellationToken = default)
     {
         try
@@ -45,7 +47,7 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
     {
         try
         {
-            return Task.FromResult(TryReadFocusedInput(null));
+            return Task.FromResult(TryReadFocusedInput(null, strictTextInput: true));
         }
         catch
         {
@@ -53,14 +55,43 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         }
     }
 
-    private static TextProbeResult TryReadElement(AutomationElement? element, PointerPoint? point, bool requireInput)
+    public Task<bool> TryWriteFocusedInputAsync(string text, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (lastFocusedInput is null || IsPasswordElement(lastFocusedInput))
+            {
+                return Task.FromResult(false);
+            }
+
+            if (!lastFocusedInput.TryGetCurrentPattern(ValuePattern.Pattern, out object pattern))
+            {
+                return Task.FromResult(false);
+            }
+
+            var valuePattern = (ValuePattern)pattern;
+            if (valuePattern.Current.IsReadOnly)
+            {
+                return Task.FromResult(false);
+            }
+
+            valuePattern.SetValue(text);
+            return Task.FromResult(true);
+        }
+        catch
+        {
+            return Task.FromResult(false);
+        }
+    }
+
+    private TextProbeResult TryReadElement(AutomationElement? element, PointerPoint? point, bool requireInput, bool strictTextInput = false)
     {
         if (element is null)
         {
             return TextProbeResult.None(ProbeSource.UiAutomation);
         }
 
-        element = requireInput ? FindInputElement(element) : FindInputElement(element) ?? element;
+        element = requireInput ? FindInputElement(element, strictTextInput) : FindInputElement(element, strictTextInput: false) ?? element;
         if (element is null || IsPasswordElement(element))
         {
             return TextProbeResult.None(ProbeSource.UiAutomation);
@@ -77,16 +108,20 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
             ? ProbeDisplayKind.Input
             : GuessDisplayKind(element, text);
         PixelRect? anchorBounds = TryGetBounds(element);
+        if (displayKind == ProbeDisplayKind.Input && requireInput)
+        {
+            lastFocusedInput = element;
+        }
 
         return ToResult(text, displayKind, anchorBounds);
     }
 
-    private static TextProbeResult TryReadFocusedInput(PointerPoint? point)
+    private TextProbeResult TryReadFocusedInput(PointerPoint? point, bool strictTextInput = false)
     {
         try
         {
             AutomationElement focused = AutomationElement.FocusedElement;
-            return TryReadElement(focused, point, requireInput: true);
+            return TryReadElement(focused, point, requireInput: true, strictTextInput);
         }
         catch
         {
@@ -163,17 +198,22 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
 
     private static bool IsInputElement(AutomationElement element)
     {
-        object controlType = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, ignoreDefaultValue: true);
-        return Equals(controlType, ControlType.Edit)
-            || HasWritableValuePattern(element);
+        return IsTextEntryElement(element);
     }
 
-    private static AutomationElement? FindInputElement(AutomationElement? element)
+    private static bool IsTextEntryElement(AutomationElement element)
+    {
+        object controlType = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, ignoreDefaultValue: true);
+        return Equals(controlType, ControlType.Edit);
+    }
+
+    private static AutomationElement? FindInputElement(AutomationElement? element, bool strictTextInput)
     {
         AutomationElement? current = element;
         for (int depth = 0; depth < 5 && current is not null; depth++)
         {
-            if (IsInputElement(current))
+            bool isInput = strictTextInput ? IsTextEntryElement(current) : IsInputElement(current);
+            if (isInput)
             {
                 return current;
             }
@@ -189,23 +229,6 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         }
 
         return null;
-    }
-
-    private static bool HasWritableValuePattern(AutomationElement element)
-    {
-        if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out object pattern))
-        {
-            return false;
-        }
-
-        try
-        {
-            return !((ValuePattern)pattern).Current.IsReadOnly;
-        }
-        catch
-        {
-            return true;
-        }
     }
 
     private static bool IsPasswordElement(AutomationElement element)

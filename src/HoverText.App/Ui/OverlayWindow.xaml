@@ -41,6 +41,20 @@
                        FontFamily="Segoe UI"
                        FontWeight="SemiBold"
                        TextWrapping="Wrap"/>
+            <TextBox x:Name="InputEditor"
+                     AcceptsReturn="True"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     CaretBrush="#22d3ee"
+                     FontFamily="Segoe UI"
+                     FontWeight="SemiBold"
+                     Foreground="#f8fafc"
+                     MinHeight="132"
+                     MinWidth="560"
+                     Padding="0"
+                     TextChanged="InputEditor_TextChanged"
+                     TextWrapping="Wrap"
+                     Visibility="Collapsed"/>
         </StackPanel>
     </Border>
 </Window>

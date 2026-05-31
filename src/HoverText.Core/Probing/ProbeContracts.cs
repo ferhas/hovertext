@@ -10,6 +10,8 @@ public interface ITextProbeSource
 public interface IFocusedInputProbeSource
 {
     Task<TextProbeResult> TryReadFocusedInputAsync(CancellationToken cancellationToken = default);
+
+    Task<bool> TryWriteFocusedInputAsync(string text, CancellationToken cancellationToken = default);
 }
 
 public interface IMagnifierFallback

@@ -22,6 +22,14 @@ public partial class OverlayWindow : Window
     private System.Windows.Media.Brush foregroundBrush = System.Windows.Media.Brushes.White;
     private System.Windows.Media.Brush backgroundBrush = System.Windows.Media.Brushes.Black;
     private PixelSize? lastMagnifierDisplaySize;
+    private IntPtr windowHandle;
+    private bool isUpdatingInputEditor;
+
+    public event Action<string>? InputTextEdited;
+
+    public bool IsInputEditorActive => IsVisible
+        && InputEditor.Visibility == Visibility.Visible
+        && InputEditor.IsKeyboardFocusWithin;
 
     public OverlayWindow()
     {
@@ -37,7 +45,7 @@ public partial class OverlayWindow : Window
         OverlayLayoutFingerprint layoutFingerprint = OverlayLayoutFingerprint.From(result, settings);
         bool needsLayout = !IsVisible || lastLayoutFingerprint != layoutFingerprint;
 
-        ApplySettings(settings, result.DisplayKind);
+        ApplySettings(settings, result);
         string sourceText = result.Source switch
         {
             ProbeSource.UiAutomation => "UI Automation",
@@ -78,24 +86,29 @@ public partial class OverlayWindow : Window
         {
             Show();
         }
+
+        SetInteractive(result.DisplayKind == ProbeDisplayKind.Input);
+        if (result.DisplayKind == ProbeDisplayKind.Input)
+        {
+            Activate();
+            InputEditor.Focus();
+            InputEditor.CaretIndex = InputEditor.Text.Length;
+        }
     }
 
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-        IntPtr handle = new WindowInteropHelper(this).Handle;
-        int style = GetWindowLong(handle, GwlExStyle);
-        SetWindowLong(handle, GwlExStyle, style | WsExTransparent | WsExToolWindow | WsExNoActivate);
+        windowHandle = new WindowInteropHelper(this).Handle;
+        SetInteractive(false);
     }
 
-    private void ApplySettings(HoverTextSettings settings, ProbeDisplayKind displayKind)
+    private void ApplySettings(HoverTextSettings settings, ProbeResult result)
     {
         foregroundBrush = GetCachedBrush(settings.Foreground, System.Windows.Media.Brushes.White, ref cachedForegroundColor, ref foregroundBrush);
         backgroundBrush = GetCachedBrush(settings.Background, System.Windows.Media.Brushes.Black, ref cachedBackgroundColor, ref backgroundBrush);
 
-        double targetFontSize = displayKind == ProbeDisplayKind.Input
-            ? Math.Max(settings.FontSize, 76)
-            : settings.FontSize;
+        double targetFontSize = OverlayTextSizing.CalculateFontSize(settings.FontSize, result.DisplayText, result.DisplayKind);
         if (!DisplayText.FontSize.Equals(targetFontSize))
         {
             DisplayText.FontSize = targetFontSize;
@@ -104,6 +117,8 @@ public partial class OverlayWindow : Window
         DisplayText.Foreground = foregroundBrush;
         SourceLabel.Foreground = foregroundBrush;
         Shell.Background = backgroundBrush;
+        InputEditor.FontSize = targetFontSize;
+        InputEditor.Foreground = foregroundBrush;
     }
 
     private void ApplyDisplayKind(ProbeDisplayKind displayKind, HoverTextSettings settings)
@@ -125,9 +140,12 @@ public partial class OverlayWindow : Window
             Shell.MinWidth = 560;
             Shell.MinHeight = 132;
             DisplayText.Foreground = foregroundBrush;
+            DisplayText.Visibility = Visibility.Collapsed;
+            InputEditor.Visibility = Visibility.Visible;
             return;
         }
 
+        InputEditor.Visibility = Visibility.Collapsed;
         if (displayKind == ProbeDisplayKind.Tooltip)
         {
             SourceLabel.Text = "Tip";
@@ -181,6 +199,25 @@ public partial class OverlayWindow : Window
         string displayText = result.DisplayKind == ProbeDisplayKind.Input && string.IsNullOrWhiteSpace(result.DisplayText)
             ? " "
             : result.DisplayText;
+        if (result.DisplayKind == ProbeDisplayKind.Input)
+        {
+            if (InputEditor.Text != displayText)
+            {
+                isUpdatingInputEditor = true;
+                try
+                {
+                    InputEditor.Text = displayText;
+                }
+                finally
+                {
+                    isUpdatingInputEditor = false;
+                }
+            }
+
+            DisplayText.Visibility = Visibility.Collapsed;
+            return;
+        }
+
         if (DisplayText.Text != displayText)
         {
             DisplayText.Text = displayText;
@@ -192,6 +229,14 @@ public partial class OverlayWindow : Window
         if (DisplayText.Visibility != textVisibility)
         {
             DisplayText.Visibility = textVisibility;
+        }
+    }
+
+    private void InputEditor_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        if (!isUpdatingInputEditor)
+        {
+            InputTextEdited?.Invoke(InputEditor.Text);
         }
     }
 
@@ -249,6 +294,29 @@ public partial class OverlayWindow : Window
         {
             return fallback;
         }
+    }
+
+    private void SetInteractive(bool isInteractive)
+    {
+        if (windowHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        int style = GetWindowLong(windowHandle, GwlExStyle) | WsExToolWindow;
+        if (isInteractive)
+        {
+            style &= ~WsExTransparent;
+            style &= ~WsExNoActivate;
+            Focusable = true;
+        }
+        else
+        {
+            style |= WsExTransparent | WsExNoActivate;
+            Focusable = false;
+        }
+
+        SetWindowLong(windowHandle, GwlExStyle, style);
     }
 
     [DllImport("user32.dll")]

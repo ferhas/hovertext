@@ -40,6 +40,7 @@ public sealed class HoverTextController : IDisposable
         this.triggerReader = triggerReader;
         this.cursorProvider = cursorProvider;
         this.settings = settings;
+        overlayWindow.InputTextEdited += OnInputTextEdited;
         timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds)
@@ -67,6 +68,7 @@ public sealed class HoverTextController : IDisposable
     {
         timer.Stop();
         timer.Tick -= OnTick;
+        overlayWindow.InputTextEdited -= OnInputTextEdited;
         overlayWindow.Close();
     }
 
@@ -83,6 +85,11 @@ public sealed class HoverTextController : IDisposable
             PointerPoint point = cursorProvider.GetCursorPosition();
             if (!triggerReader.IsPressed(settings.TriggerKey))
             {
+                if (overlayWindow.IsInputEditorActive)
+                {
+                    return;
+                }
+
                 TimeSpan now = ElapsedSinceStart();
                 if (triggerReader.HasTypingActivity())
                 {
@@ -161,5 +168,10 @@ public sealed class HoverTextController : IDisposable
         }
 
         overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
+    }
+
+    private async void OnInputTextEdited(string text)
+    {
+        await focusedInputProbe.TryWriteFocusedInputAsync(text);
     }
 }

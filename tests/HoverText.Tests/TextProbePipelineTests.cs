@@ -47,7 +47,12 @@ public sealed class TextProbePipelineTests
         var automation = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.UiAutomation));
         var ocr = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.Ocr));
         var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 2.5));
-        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
+        int beforeMagnifierCalls = 0;
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier, () =>
+        {
+            beforeMagnifierCalls++;
+            return Task.CompletedTask;
+        });
 
         ProbeResult result = await pipeline.ProbeAsync(new PointerPoint(32, 64), HoverTextSettings.CreateDefault());
 
@@ -56,7 +61,28 @@ public sealed class TextProbePipelineTests
         Assert.AreEqual("", result.DisplayText);
         Assert.AreEqual(1, automation.Calls);
         Assert.AreEqual(1, ocr.Calls);
+        Assert.AreEqual(1, beforeMagnifierCalls);
         Assert.AreEqual(1, magnifier.Calls);
+    }
+
+    [TestMethod]
+    public async Task ProbeAsync_does_not_run_before_magnifier_callback_when_text_is_found()
+    {
+        var automation = new RecordingTextProbeSource(TextProbeResult.Found("Readable", ProbeSource.UiAutomation));
+        var ocr = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.Ocr));
+        var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 3.0));
+        int beforeMagnifierCalls = 0;
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier, () =>
+        {
+            beforeMagnifierCalls++;
+            return Task.CompletedTask;
+        });
+
+        ProbeResult result = await pipeline.ProbeAsync(new PointerPoint(32, 64), HoverTextSettings.CreateDefault());
+
+        Assert.AreEqual(ProbeDisplayKind.Text, result.DisplayKind);
+        Assert.AreEqual(0, beforeMagnifierCalls);
+        Assert.AreEqual(0, magnifier.Calls);
     }
 
     [TestMethod]

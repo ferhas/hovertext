@@ -17,7 +17,6 @@ public partial class App : System.Windows.Application
     private HoverTextSettings settings = HoverTextSettings.CreateDefault();
     private StartupManager? startupManager;
     private SingleInstanceLock? singleInstanceLock;
-    private ControlWindow? controlWindow;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -40,7 +39,11 @@ public partial class App : System.Windows.Application
         var automation = new UiAutomationTextProbeSource();
         var ocr = new TesseractCliOcrTextProbeSource();
         var magnifier = new ScreenMagnifierFallback();
-        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier, () =>
+        {
+            overlay.Hide();
+            return Task.CompletedTask;
+        });
 
         controller = new HoverTextController(
             overlay,
@@ -53,7 +56,6 @@ public partial class App : System.Windows.Application
 
         trayIcon = new TrayIconService(
             settings,
-            ShowControlWindow,
             OpenSettingsWindow,
             ToggleOcr,
             ToggleStartup,
@@ -62,7 +64,7 @@ public partial class App : System.Windows.Application
         StartupUiPolicy uiPolicy = StartupUiPolicy.CreateDefault();
         if (uiPolicy.ShowTaskbarControlWindow || e.Args.Contains("--show-window", StringComparer.OrdinalIgnoreCase))
         {
-            ShowControlWindow();
+            OpenSettingsWindow();
         }
 
         if (e.Args.Contains("--show-settings", StringComparer.OrdinalIgnoreCase))
@@ -89,23 +91,6 @@ public partial class App : System.Windows.Application
         var window = new SettingsWindow(settings, SaveSettingsAsync);
         window.Show();
         window.Activate();
-    }
-
-    private void ShowControlWindow()
-    {
-        if (controlWindow is null)
-        {
-            controlWindow = new ControlWindow(OpenSettingsWindow, () => Shutdown());
-            controlWindow.Closed += (_, _) => controlWindow = null;
-        }
-
-        controlWindow.Show();
-        if (controlWindow.WindowState == WindowState.Minimized)
-        {
-            controlWindow.WindowState = WindowState.Normal;
-        }
-
-        controlWindow.Activate();
     }
 
     private async Task SaveSettingsAsync(HoverTextSettings updated)

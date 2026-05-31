@@ -7,6 +7,7 @@ public partial class SettingsWindow : Window
 {
     private readonly Func<HoverTextSettings, Task> saveAsync;
     private HoverTextSettings settings;
+    private TriggerKey selectedTriggerKey;
 
     public SettingsWindow(HoverTextSettings settings, Func<HoverTextSettings, Task> saveAsync)
     {
@@ -14,13 +15,12 @@ public partial class SettingsWindow : Window
         Icon = AppIcon.LoadImageSource();
         this.settings = settings;
         this.saveAsync = saveAsync;
-        TriggerKeyBox.ItemsSource = Enum.GetValues<TriggerKey>();
         LoadSettings(settings);
     }
 
     private void LoadSettings(HoverTextSettings value)
     {
-        TriggerKeyBox.SelectedItem = value.TriggerKey;
+        selectedTriggerKey = value.TriggerKey;
         FontSizeSlider.Value = value.FontSize;
         PollIntervalSlider.Value = value.PollIntervalMilliseconds;
         ForegroundBox.Text = value.Foreground;
@@ -28,13 +28,14 @@ public partial class SettingsWindow : Window
         OcrBox.IsChecked = value.IsOcrEnabled;
         StartupBox.IsChecked = value.StartWithWindows;
         UpdateSliderLabels();
+        UpdateTriggerButtons();
     }
 
     private async void Save_Click(object sender, RoutedEventArgs e)
     {
         settings = settings with
         {
-            TriggerKey = (TriggerKey)(TriggerKeyBox.SelectedItem ?? TriggerKey.Alt),
+            TriggerKey = selectedTriggerKey,
             FontSize = (int)FontSizeSlider.Value,
             PollIntervalMilliseconds = (int)PollIntervalSlider.Value,
             Foreground = ForegroundBox.Text,
@@ -50,6 +51,17 @@ public partial class SettingsWindow : Window
     private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         UpdateSliderLabels();
+    }
+
+    private void TriggerButton_Click(object sender, RoutedEventArgs e)
+    {
+        selectedTriggerKey = sender switch
+        {
+            FrameworkElement { Name: nameof(ControlButton) } => TriggerKey.Control,
+            FrameworkElement { Name: nameof(ShiftButton) } => TriggerKey.Shift,
+            _ => TriggerKey.Alt
+        };
+        UpdateTriggerButtons();
     }
 
     private void ForegroundPreset_Click(object sender, RoutedEventArgs e)
@@ -87,5 +99,27 @@ public partial class SettingsWindow : Window
 
         FontSizeValue.Text = $"{(int)FontSizeSlider.Value}px";
         PollIntervalValue.Text = $"{(int)PollIntervalSlider.Value} ms";
+    }
+
+    private void UpdateTriggerButtons()
+    {
+        if (AltButton is null || ControlButton is null || ShiftButton is null)
+        {
+            return;
+        }
+
+        SetTriggerButtonState(AltButton, selectedTriggerKey == TriggerKey.Alt);
+        SetTriggerButtonState(ControlButton, selectedTriggerKey == TriggerKey.Control);
+        SetTriggerButtonState(ShiftButton, selectedTriggerKey == TriggerKey.Shift);
+    }
+
+    private static void SetTriggerButtonState(System.Windows.Controls.Button button, bool isSelected)
+    {
+        button.Background = isSelected
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(8, 145, 178))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59));
+        button.BorderBrush = isSelected
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 211, 238))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(71, 85, 105));
     }
 }

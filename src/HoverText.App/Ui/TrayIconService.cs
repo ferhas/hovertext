@@ -13,7 +13,6 @@ public sealed class TrayIconService : IDisposable
 
     public TrayIconService(
         HoverTextSettings settings,
-        Action showControlWindow,
         Action openSettings,
         Action toggleOcr,
         Action toggleStartup,
@@ -22,7 +21,6 @@ public sealed class TrayIconService : IDisposable
         ocrItem = new Forms.ToolStripMenuItem("OCR fallback", null, (_, _) => toggleOcr()) { CheckOnClick = false };
         startupItem = new Forms.ToolStripMenuItem("Start with Windows", null, (_, _) => toggleStartup()) { CheckOnClick = false };
         var contextMenu = new Forms.ContextMenuStrip();
-        contextMenu.Items.Add(new Forms.ToolStripMenuItem("Show HoverText", null, (_, _) => showControlWindow()));
         contextMenu.Items.Add(new Forms.ToolStripMenuItem("Settings", null, (_, _) => openSettings()));
         contextMenu.Items.Add(ocrItem);
         contextMenu.Items.Add(startupItem);
@@ -40,10 +38,10 @@ public sealed class TrayIconService : IDisposable
         {
             if (e.Button == Forms.MouseButtons.Left)
             {
-                showControlWindow();
+                openSettings();
             }
         };
-        notifyIcon.DoubleClick += (_, _) => showControlWindow();
+        notifyIcon.DoubleClick += (_, _) => openSettings();
         UpdateSettings(settings);
     }
 

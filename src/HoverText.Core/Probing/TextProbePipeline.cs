@@ -6,7 +6,8 @@ namespace HoverText.Core.Probing;
 public sealed class TextProbePipeline(
     ITextProbeSource uiAutomation,
     ITextProbeSource ocr,
-    IMagnifierFallback magnifier)
+    IMagnifierFallback magnifier,
+    Func<Task>? beforeMagnifierCaptureAsync = null)
 {
     public async Task<ProbeResult> ProbeAsync(
         PointerPoint point,
@@ -26,6 +27,11 @@ public sealed class TextProbePipeline(
             {
                 return ProbeResult.FromText(ocrResult);
             }
+        }
+
+        if (beforeMagnifierCaptureAsync is not null)
+        {
+            await beforeMagnifierCaptureAsync();
         }
 
         MagnifierResult magnifierResult = await magnifier.CaptureAsync(point, cancellationToken);

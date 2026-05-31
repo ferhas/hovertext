@@ -16,8 +16,11 @@ public sealed class HoverTextController : IDisposable
     private readonly KeyboardTriggerReader triggerReader;
     private readonly CursorPositionProvider cursorProvider;
     private readonly DispatcherTimer timer;
+    private readonly DateTime startedAt = DateTime.UtcNow;
     private bool isTicking;
     private HoverTextSettings settings;
+    private ProbeResult? cachedMagnifierResult;
+    private MagnifierFrameState? cachedMagnifierFrame;
 
     public HoverTextController(
         OverlayWindow overlayWindow,
@@ -75,7 +78,26 @@ public sealed class HoverTextController : IDisposable
         try
         {
             PointerPoint point = cursorProvider.GetCursorPosition();
+            if (cachedMagnifierResult is not null
+                && cachedMagnifierFrame is not null
+                && !MagnifierRefreshPolicy.ShouldCapture(point, cachedMagnifierFrame, ElapsedSinceStart()))
+            {
+                overlayWindow.ShowProbeResult(cachedMagnifierResult, settings, point, magnifier.LastCapture);
+                return;
+            }
+
             ProbeResult result = await pipeline.ProbeAsync(point, settings);
+            if (result.DisplayKind == ProbeDisplayKind.Magnifier)
+            {
+                cachedMagnifierResult = result;
+                cachedMagnifierFrame = new MagnifierFrameState(point, ElapsedSinceStart());
+            }
+            else
+            {
+                cachedMagnifierResult = null;
+                cachedMagnifierFrame = null;
+            }
+
             overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
         }
         catch
@@ -86,5 +108,10 @@ public sealed class HoverTextController : IDisposable
         {
             isTicking = false;
         }
+    }
+
+    private TimeSpan ElapsedSinceStart()
+    {
+        return DateTime.UtcNow - startedAt;
     }
 }

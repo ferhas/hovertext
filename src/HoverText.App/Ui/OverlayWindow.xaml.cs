@@ -99,13 +99,13 @@ public partial class OverlayWindow : Window
         {
             SourceLabel.Text = "Input";
             SourceLabel.Visibility = Visibility.Collapsed;
-            Shell.Background = System.Windows.Media.Brushes.White;
-            Shell.BorderBrush = System.Windows.Media.Brushes.DodgerBlue;
+            Shell.Background = ToBrush(settings.Background, System.Windows.Media.Brushes.Black);
+            Shell.BorderBrush = System.Windows.Media.Brushes.DeepSkyBlue;
             Shell.BorderThickness = new Thickness(2);
             Shell.CornerRadius = new CornerRadius(6);
             Shell.MinWidth = 520;
             Shell.MinHeight = 112;
-            DisplayText.Foreground = System.Windows.Media.Brushes.Black;
+            DisplayText.Foreground = ToBrush(settings.Foreground, System.Windows.Media.Brushes.White);
             DisplayText.FontSize = Math.Max(settings.FontSize, 72);
             return;
         }

@@ -1,10 +1,10 @@
-# HoverText 中文版
+# HoverText：Windows 终于有了 Apple Hover Text 式悬浮文字
 
 <div align="center">
 
-**让 Windows 也拥有类似 Apple Hover Text 的悬浮文字辅助。**
+**Apple 有 Hover Text，Windows 也该有。**
 
-HoverText 是一个面向视力障碍、低视力和容易视觉疲劳用户的 Windows 悬浮文字放大工具：按住触发键，即可把鼠标下方的文字放大显示在附近。
+HoverText 为视力障碍、低视力和容易视觉疲劳的 Windows 用户补上缺失的悬浮文字辅助：按住触发键，把鼠标下方看不清的文字直接放大到眼前。
 
 [English](README.md)
 

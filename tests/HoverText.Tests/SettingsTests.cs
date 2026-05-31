@@ -11,7 +11,7 @@ public sealed class SettingsTests
         HoverTextSettings settings = HoverTextSettings.CreateDefault();
 
         Assert.AreEqual(TriggerKey.Alt, settings.TriggerKey);
-        Assert.AreEqual(40, settings.FontSize);
+        Assert.AreEqual(56, settings.FontSize);
         Assert.AreEqual(150, settings.PollIntervalMilliseconds);
         Assert.IsTrue(settings.IsOcrEnabled);
         Assert.IsFalse(settings.StartWithWindows);
@@ -24,7 +24,7 @@ public sealed class SettingsTests
         var store = new JsonSettingsStore(path);
         var original = HoverTextSettings.CreateDefault() with
         {
-            FontSize = 48,
+            FontSize = 72,
             Foreground = "#fff4b8",
             Background = "#1a1f2b",
             TriggerKey = TriggerKey.Control,
@@ -39,6 +39,29 @@ public sealed class SettingsTests
             HoverTextSettings loaded = await store.LoadAsync();
 
             Assert.AreEqual(original, loaded);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task JsonSettingsStore_upgrades_legacy_small_font_size()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        var store = new JsonSettingsStore(path);
+        var legacy = HoverTextSettings.CreateDefault() with { FontSize = 40 };
+
+        try
+        {
+            await store.SaveAsync(legacy);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.AreEqual(56, loaded.FontSize);
         }
         finally
         {

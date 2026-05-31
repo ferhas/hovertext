@@ -12,26 +12,52 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource
     {
         try
         {
-            AutomationElement? element = AutomationElement.FromPoint(new System.Windows.Point(point.X, point.Y));
-            if (element is null)
+            TextProbeResult pointResult = TryReadElement(AutomationElement.FromPoint(new System.Windows.Point(point.X, point.Y)), point);
+            if (pointResult.HasText)
             {
-                return Task.FromResult(TextProbeResult.None(ProbeSource.UiAutomation));
+                return Task.FromResult(pointResult);
             }
 
-            bool isInput = IsInputElement(element);
-            string? text = TryReadTextPattern(element, point)
-                ?? TryReadValuePattern(element)
-                ?? TryReadProperty(element, AutomationElement.HelpTextProperty)
-                ?? TryReadProperty(element, AutomationElement.NameProperty);
-            ProbeDisplayKind displayKind = isInput
-                ? ProbeDisplayKind.Input
-                : GuessDisplayKind(element, text);
-
-            return Task.FromResult(ToResult(text, displayKind));
+            TextProbeResult focusedInputResult = TryReadFocusedInput(point);
+            return Task.FromResult(focusedInputResult.HasText ? focusedInputResult : pointResult);
         }
         catch
         {
             return Task.FromResult(TextProbeResult.None(ProbeSource.UiAutomation));
+        }
+    }
+
+    private static TextProbeResult TryReadElement(AutomationElement? element, PointerPoint point)
+    {
+        if (element is null)
+        {
+            return TextProbeResult.None(ProbeSource.UiAutomation);
+        }
+
+        bool isInput = IsInputElement(element);
+        string? text = TryReadTextPattern(element, point)
+            ?? TryReadValuePattern(element)
+            ?? TryReadProperty(element, AutomationElement.HelpTextProperty)
+            ?? TryReadProperty(element, AutomationElement.NameProperty);
+        ProbeDisplayKind displayKind = isInput
+            ? ProbeDisplayKind.Input
+            : GuessDisplayKind(element, text);
+
+        return ToResult(text, displayKind);
+    }
+
+    private static TextProbeResult TryReadFocusedInput(PointerPoint point)
+    {
+        try
+        {
+            AutomationElement focused = AutomationElement.FocusedElement;
+            return IsInputElement(focused)
+                ? TryReadElement(focused, point)
+                : TextProbeResult.None(ProbeSource.UiAutomation);
+        }
+        catch
+        {
+            return TextProbeResult.None(ProbeSource.UiAutomation);
         }
     }
 

@@ -43,15 +43,24 @@ public partial class OverlayWindow : Window
         {
             MagnifierImage.Source = magnifierCapture;
             MagnifierImage.Visibility = Visibility.Visible;
+            if (result.Magnifier is not null)
+            {
+                MagnifierImage.Width = result.Magnifier.CaptureArea.Width * result.Magnifier.Scale;
+                MagnifierImage.Height = result.Magnifier.CaptureArea.Height * result.Magnifier.Scale;
+            }
         }
         else
         {
             MagnifierImage.Source = null;
             MagnifierImage.Visibility = Visibility.Collapsed;
+            MagnifierImage.Width = double.NaN;
+            MagnifierImage.Height = double.NaN;
         }
 
-        DisplayText.Text = result.DisplayText;
-        DisplayText.Visibility = string.IsNullOrWhiteSpace(result.DisplayText)
+        DisplayText.Text = result.DisplayKind == ProbeDisplayKind.Input && string.IsNullOrWhiteSpace(result.DisplayText)
+            ? " "
+            : result.DisplayText;
+        DisplayText.Visibility = string.IsNullOrWhiteSpace(DisplayText.Text) && result.DisplayKind != ProbeDisplayKind.Input
             ? Visibility.Collapsed
             : Visibility.Visible;
         UpdateLayout();
@@ -94,10 +103,10 @@ public partial class OverlayWindow : Window
             Shell.BorderBrush = System.Windows.Media.Brushes.DodgerBlue;
             Shell.BorderThickness = new Thickness(2);
             Shell.CornerRadius = new CornerRadius(6);
-            Shell.MinWidth = 360;
-            Shell.MinHeight = 72;
+            Shell.MinWidth = 520;
+            Shell.MinHeight = 112;
             DisplayText.Foreground = System.Windows.Media.Brushes.Black;
-            DisplayText.FontSize = Math.Max(settings.FontSize, 48);
+            DisplayText.FontSize = Math.Max(settings.FontSize, 72);
             return;
         }
 

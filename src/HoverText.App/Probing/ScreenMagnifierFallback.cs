@@ -25,7 +25,7 @@ public sealed class ScreenMagnifierFallback : IMagnifierFallback
             using Graphics graphics = Graphics.FromImage(bitmap);
             graphics.CopyFromScreen(x, y, 0, 0, new Size(CaptureWidth, CaptureHeight));
             LastCapture = ToBitmapSource(bitmap);
-            return Task.FromResult(MagnifierResult.Captured(new PixelRect(x, y, CaptureWidth, CaptureHeight), 2.0));
+            return Task.FromResult(MagnifierResult.Captured(new PixelRect(x, y, CaptureWidth, CaptureHeight), MagnifierDefaults.Scale));
         }
         catch
         {

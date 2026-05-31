@@ -28,7 +28,7 @@ public sealed record HoverTextSettings
         return new HoverTextSettings
         {
             TriggerKey = TriggerKey.Alt,
-            FontSize = 40,
+            FontSize = 56,
             Foreground = "#f8fafc",
             Background = "#111827",
             PollIntervalMilliseconds = 150,

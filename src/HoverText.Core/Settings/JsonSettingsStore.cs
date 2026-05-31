@@ -18,7 +18,7 @@ public sealed class JsonSettingsStore(string path)
 
         await using FileStream stream = File.OpenRead(path);
         HoverTextSettings? settings = await JsonSerializer.DeserializeAsync<HoverTextSettings>(stream, Options, cancellationToken);
-        return settings ?? HoverTextSettings.CreateDefault();
+        return Normalize(settings ?? HoverTextSettings.CreateDefault());
     }
 
     public async Task SaveAsync(HoverTextSettings settings, CancellationToken cancellationToken = default)
@@ -31,5 +31,13 @@ public sealed class JsonSettingsStore(string path)
 
         await using FileStream stream = File.Create(path);
         await JsonSerializer.SerializeAsync(stream, settings, Options, cancellationToken);
+    }
+
+    private static HoverTextSettings Normalize(HoverTextSettings settings)
+    {
+        HoverTextSettings defaults = HoverTextSettings.CreateDefault();
+        return settings.FontSize < defaults.FontSize
+            ? settings with { FontSize = defaults.FontSize }
+            : settings;
     }
 }

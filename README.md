@@ -1,8 +1,8 @@
-# HoverText: Apple-Style Hover Text for Windows
+# HoverText: macOS Hover Text for Windows
 
 <div align="center">
 
-**Windows never had Apple Hover Text. Now it does.**
+**macOS has Hover Text. Windows should too.**
 
 HoverText is a low-vision accessibility utility that brings cursor-following, high-contrast floating text to Windows.
 
@@ -32,7 +32,6 @@ Windows users deserve the same kind of lightweight help. HoverText is built to f
 - Falls back to optional Tesseract OCR when UI Automation cannot provide text
 - Falls back again to a 3x pixel magnifier around the cursor when OCR is unavailable or fails
 - Shows tooltip-like text for icon-only controls instead of jumping straight into magnifier mode
-- Provides a Hover Typing-style editable enlarged input box while typing
 - Shrinks long text automatically to reduce clipping
 - Avoids screen edges and works across common browsers, editors, Explorer, and desktop apps
 - Runs from the system tray and stores settings in `%APPDATA%\HoverText\settings.json`
@@ -61,7 +60,7 @@ For development, run from source:
 Or run the built executable:
 
 ```powershell
-.\src\HoverText.App\bin\Debug\net8.0-windows\HoverText.App.exe
+.\src\HoverText.App\bin\Debug\net8.0-windows10.0.19041.0\HoverText.App.exe
 ```
 
 ## Test

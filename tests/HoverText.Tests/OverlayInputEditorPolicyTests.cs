@@ -21,11 +21,25 @@ public sealed class OverlayInputEditorPolicyTests
     {
         bool shouldReplace = OverlayInputEditorPolicy.ShouldReplaceEditorText(
             ProbeDisplayKind.Input,
+            wasInputMode: true,
             isEditorFocused: true,
             currentText: "用户正在编辑",
             incomingText: "旧内容");
 
         Assert.IsFalse(shouldReplace);
+    }
+
+    [TestMethod]
+    public void ShouldReplaceEditorText_fills_initial_text_when_entering_input_mode()
+    {
+        bool shouldReplace = OverlayInputEditorPolicy.ShouldReplaceEditorText(
+            ProbeDisplayKind.Input,
+            wasInputMode: false,
+            isEditorFocused: true,
+            currentText: "",
+            incomingText: "原控件内容");
+
+        Assert.IsTrue(shouldReplace);
     }
 
     [TestMethod]

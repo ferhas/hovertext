@@ -78,7 +78,7 @@ public partial class OverlayWindow : Window
         }
 
         UpdateMagnifier(result, magnifierCapture, needsLayout);
-        UpdateDisplayText(result);
+        UpdateDisplayText(result, wasInputMode);
 
         if (needsLayout)
         {
@@ -226,13 +226,14 @@ public partial class OverlayWindow : Window
         lastMagnifierDisplaySize = null;
     }
 
-    private void UpdateDisplayText(ProbeResult result)
+    private void UpdateDisplayText(ProbeResult result, bool wasInputMode)
     {
         string displayText = OverlayInputEditorPolicy.PrepareText(result.DisplayText, result.DisplayKind);
         if (result.DisplayKind == ProbeDisplayKind.Input)
         {
             if (OverlayInputEditorPolicy.ShouldReplaceEditorText(
                     result.DisplayKind,
+                    wasInputMode,
                     InputEditor.IsKeyboardFocusWithin,
                     InputEditor.Text,
                     displayText))
@@ -351,6 +352,12 @@ public partial class OverlayWindow : Window
         }
 
         SetWindowLong(windowHandle, GwlExStyle, style);
+        uint flags = SwpNoMove | SwpNoSize | SwpNoZOrder | SwpFrameChanged;
+        if (!isInteractive)
+        {
+            flags |= SwpNoActivate;
+        }
+
         SetWindowPos(
             windowHandle,
             IntPtr.Zero,
@@ -358,13 +365,14 @@ public partial class OverlayWindow : Window
             0,
             0,
             0,
-            SwpNoMove | SwpNoSize | SwpNoZOrder | SwpNoActivate | SwpFrameChanged);
+            flags);
     }
 
     private void TryFocusInputEditor(bool moveCaretToEnd)
     {
         try
         {
+            BringOverlayToForeground();
             Activate();
             InputEditor.Focus();
             Keyboard.Focus(InputEditor);
@@ -375,6 +383,40 @@ public partial class OverlayWindow : Window
         }
         catch
         {
+        }
+    }
+
+    private void BringOverlayToForeground()
+    {
+        if (windowHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        IntPtr foregroundWindow = GetForegroundWindow();
+        uint currentThread = GetCurrentThreadId();
+        uint foregroundThread = foregroundWindow == IntPtr.Zero
+            ? 0
+            : GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
+        bool attached = false;
+
+        try
+        {
+            if (foregroundThread != 0 && foregroundThread != currentThread)
+            {
+                attached = AttachThreadInput(currentThread, foregroundThread, true);
+            }
+
+            BringWindowToTop(windowHandle);
+            SetForegroundWindow(windowHandle);
+            SetFocus(windowHandle);
+        }
+        finally
+        {
+            if (attached)
+            {
+                AttachThreadInput(currentThread, foregroundThread, false);
+            }
         }
     }
 
@@ -406,6 +448,27 @@ public partial class OverlayWindow : Window
         int width,
         int height,
         uint flags);
+
+    [DllImport("user32.dll")]
+    private static extern bool BringWindowToTop(IntPtr windowHandle);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr windowHandle);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetFocus(IntPtr windowHandle);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr windowHandle, IntPtr processId);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll")]
+    private static extern bool AttachThreadInput(uint attachThreadId, uint attachToThreadId, bool attach);
 
     [DllImport("user32.dll")]
     private static extern bool SetWindowDisplayAffinity(IntPtr windowHandle, WindowCaptureAffinity affinity);

@@ -13,12 +13,13 @@ public static class OverlayInputEditorPolicy
 
     public static bool ShouldReplaceEditorText(
         ProbeDisplayKind displayKind,
+        bool wasInputMode,
         bool isEditorFocused,
         string currentText,
         string incomingText)
     {
         return displayKind == ProbeDisplayKind.Input
-            && !isEditorFocused
+            && (!isEditorFocused || !wasInputMode)
             && !string.Equals(currentText, incomingText, StringComparison.Ordinal);
     }
 

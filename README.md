@@ -1,10 +1,10 @@
-# HoverText: macOS Hover Text for Windows
+# HoverText: macOS Hover Text for Low-Vision Windows Users
 
 <div align="center">
 
 **macOS has Hover Text. Windows should too.**
 
-HoverText is a low-vision accessibility utility that brings cursor-following, high-contrast floating text to Windows.
+HoverText is an accessibility aid for visually impaired and low-vision users, bringing cursor-following, high-contrast floating text to Windows.
 
 [Read this in Chinese](README.zh-CN.md)
 

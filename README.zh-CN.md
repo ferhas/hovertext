@@ -1,10 +1,10 @@
-# HoverText：把 macOS Hover Text 带到 Windows
+# HoverText：为视力障碍人士把 macOS Hover Text 带到 Windows
 
 <div align="center">
 
 **macOS 有 Hover Text，Windows 也该有。**
 
-HoverText 为视力障碍、低视力和容易视觉疲劳的 Windows 用户补上缺失的悬浮文字辅助：按住触发键，把鼠标下方看不清的文字直接放大到眼前。
+HoverText 是为视力障碍和低视力 Windows 用户设计的辅助工具：按住触发键，把鼠标下方看不清的文字直接放大到眼前。
 
 [English](README.md)
 

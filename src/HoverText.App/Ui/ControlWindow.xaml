@@ -1,0 +1,36 @@
+<Window x:Class="HoverText.App.Ui.ControlWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="HoverText"
+        Width="360"
+        Height="210"
+        ResizeMode="NoResize"
+        ShowInTaskbar="True"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="HoverText is running"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <TextBlock Text="Hold Alt to show enlarged text near the cursor."
+                       TextWrapping="Wrap"
+                       Foreground="#5d697c"
+                       Margin="0,0,0,8"/>
+            <TextBlock Text="This window stays on the taskbar so you can always close HoverText."
+                       TextWrapping="Wrap"
+                       Foreground="#5d697c"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Settings" Width="96" Margin="0,0,8,0" Click="Settings_Click"/>
+            <Button Content="Minimize" Width="96" Margin="0,0,8,0" Click="Minimize_Click"/>
+            <Button Content="Exit" Width="96" Click="Exit_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

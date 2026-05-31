@@ -17,6 +17,7 @@ public partial class App : System.Windows.Application
     private HoverTextSettings settings = HoverTextSettings.CreateDefault();
     private StartupManager? startupManager;
     private SingleInstanceLock? singleInstanceLock;
+    private ControlWindow? controlWindow;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -56,6 +57,13 @@ public partial class App : System.Windows.Application
             ToggleOcr,
             ToggleStartup,
             () => Shutdown());
+
+        StartupUiPolicy uiPolicy = StartupUiPolicy.CreateDefault();
+        if (uiPolicy.ShowTaskbarControlWindow)
+        {
+            controlWindow = new ControlWindow(OpenSettingsWindow, () => Shutdown());
+            controlWindow.Show();
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)

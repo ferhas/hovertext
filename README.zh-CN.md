@@ -8,7 +8,7 @@ HoverText 为视力障碍、低视力和容易视觉疲劳的 Windows 用户补�
 
 [English](README.md)
 
-[下载最新版 Windows EXE](https://github.com/ferhas/hovertext/releases/latest/download/HoverText-v0.1.0-win-x64.exe)
+[下载最新版 Windows EXE](https://github.com/ferhas/hovertext/releases/latest/download/HoverText-win-x64.exe)
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-8-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
@@ -49,7 +49,7 @@ Apple 系统里有一个很实用的辅助功能：**Hover Text**。用户只要
 普通用户可以直接下载独立 EXE：
 
 ```text
-https://github.com/ferhas/hovertext/releases/latest/download/HoverText-v0.1.0-win-x64.exe
+https://github.com/ferhas/hovertext/releases/latest/download/HoverText-win-x64.exe
 ```
 
 开发时也可以从源码运行：

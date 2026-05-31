@@ -17,6 +17,7 @@ public partial class App : System.Windows.Application
     private HoverTextSettings settings = HoverTextSettings.CreateDefault();
     private StartupManager? startupManager;
     private SingleInstanceLock? singleInstanceLock;
+    private SettingsWindow? settingsWindow;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -88,9 +89,19 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        var window = new SettingsWindow(settings, SaveSettingsAsync);
-        window.Show();
-        window.Activate();
+        if (settingsWindow is null)
+        {
+            settingsWindow = new SettingsWindow(settings, SaveSettingsAsync, StartupUiPolicy.CreateDefault());
+            settingsWindow.Closed += (_, _) => settingsWindow = null;
+        }
+
+        settingsWindow.LoadSettings(settings);
+        settingsWindow.Show();
+        if (settingsWindow.WindowState == WindowState.Minimized)
+        {
+            settingsWindow.WindowState = WindowState.Normal;
+        }
+        settingsWindow.Activate();
     }
 
     private async Task SaveSettingsAsync(HoverTextSettings updated)

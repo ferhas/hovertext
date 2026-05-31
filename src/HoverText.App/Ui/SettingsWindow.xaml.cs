@@ -1,4 +1,5 @@
 using System.Windows;
+using HoverText.Core.Platform;
 using HoverText.Core.Settings;
 
 namespace HoverText.App.Ui;
@@ -6,19 +7,22 @@ namespace HoverText.App.Ui;
 public partial class SettingsWindow : Window
 {
     private readonly Func<HoverTextSettings, Task> saveAsync;
+    private readonly StartupUiPolicy uiPolicy;
     private HoverTextSettings settings;
     private TriggerKey selectedTriggerKey;
+    private bool isClosingForReal;
 
-    public SettingsWindow(HoverTextSettings settings, Func<HoverTextSettings, Task> saveAsync)
+    public SettingsWindow(HoverTextSettings settings, Func<HoverTextSettings, Task> saveAsync, StartupUiPolicy uiPolicy)
     {
         InitializeComponent();
         Icon = AppIcon.LoadImageSource();
         this.settings = settings;
         this.saveAsync = saveAsync;
+        this.uiPolicy = uiPolicy;
         LoadSettings(settings);
     }
 
-    private void LoadSettings(HoverTextSettings value)
+    public void LoadSettings(HoverTextSettings value)
     {
         selectedTriggerKey = value.TriggerKey;
         FontSizeSlider.Value = value.FontSize;
@@ -45,6 +49,7 @@ public partial class SettingsWindow : Window
         };
 
         await saveAsync(settings);
+        isClosingForReal = true;
         Close();
     }
 
@@ -87,7 +92,30 @@ public partial class SettingsWindow : Window
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
+        isClosingForReal = true;
         Close();
+    }
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        if (uiPolicy.HideSettingsWindowOnMinimize && WindowState == WindowState.Minimized)
+        {
+            Hide();
+        }
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        if (uiPolicy.HideSettingsWindowOnMinimize && !isClosingForReal)
+        {
+            e.Cancel = true;
+            Hide();
+            WindowState = WindowState.Normal;
+            return;
+        }
+
+        base.OnClosing(e);
     }
 
     private void UpdateSliderLabels()

@@ -12,5 +12,6 @@ public sealed class StartupUiPolicyTests
 
         Assert.IsFalse(policy.ShowTaskbarControlWindow);
         Assert.IsTrue(policy.ControlWindowCloseExitsApplication);
+        Assert.IsTrue(policy.HideSettingsWindowOnMinimize);
     }
 }

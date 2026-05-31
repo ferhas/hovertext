@@ -100,10 +100,7 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         bool isInput = IsInputElement(element);
         string? text = isInput
             ? TryReadInputText(element)
-            : TryReadTextAtPoint(element, point)
-                ?? TryReadValuePattern(element, allowEmpty: false)
-                ?? TryReadProperty(element, AutomationElement.HelpTextProperty)
-                ?? TryReadProperty(element, AutomationElement.NameProperty);
+            : TryReadNonInputText(element, point);
         ProbeDisplayKind displayKind = isInput
             ? ProbeDisplayKind.Input
             : GuessDisplayKind(element, text);
@@ -145,6 +142,19 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
         {
             return null;
         }
+    }
+
+    private static string? TryReadNonInputText(AutomationElement element, PointerPoint? point)
+    {
+        return IsActionLikeElement(element)
+            ? TryReadProperty(element, AutomationElement.HelpTextProperty)
+                ?? TryReadProperty(element, AutomationElement.NameProperty)
+                ?? TryReadValuePattern(element, allowEmpty: false)
+                ?? TryReadTextAtPoint(element, point)
+            : TryReadTextAtPoint(element, point)
+                ?? TryReadValuePattern(element, allowEmpty: false)
+                ?? TryReadProperty(element, AutomationElement.HelpTextProperty)
+                ?? TryReadProperty(element, AutomationElement.NameProperty);
     }
 
     private static string TryReadInputText(AutomationElement element)
@@ -250,15 +260,22 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
             return ProbeDisplayKind.Tooltip;
         }
 
-        object controlType = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, ignoreDefaultValue: true);
-        if (Equals(controlType, ControlType.Button)
-            || Equals(controlType, ControlType.MenuItem)
-            || Equals(controlType, ControlType.Hyperlink))
+        if (IsActionLikeElement(element))
         {
             return ProbeDisplayKind.Tooltip;
         }
 
         return ProbeDisplayKind.Text;
+    }
+
+    private static bool IsActionLikeElement(AutomationElement element)
+    {
+        object controlType = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, ignoreDefaultValue: true);
+        return Equals(controlType, ControlType.Button)
+            || Equals(controlType, ControlType.MenuItem)
+            || Equals(controlType, ControlType.Hyperlink)
+            || Equals(controlType, ControlType.TabItem)
+            || Equals(controlType, ControlType.ListItem);
     }
 
     private static TextProbeResult ToResult(string? text, ProbeDisplayKind displayKind, PixelRect? anchorBounds)
@@ -270,7 +287,7 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource, IFocusedInpu
 
         string normalized = displayKind == ProbeDisplayKind.Input
             ? NormalizeInputText(text ?? string.Empty)
-            : string.Join(' ', (text ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+            : ProbeTextNormalizer.NormalizeNonInput(text);
         return TextProbeResult.Found(normalized, ProbeSource.UiAutomation, displayKind, anchorBounds);
     }
 

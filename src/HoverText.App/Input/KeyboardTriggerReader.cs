@@ -5,6 +5,17 @@ namespace HoverText.App.Input;
 
 public sealed class KeyboardTriggerReader
 {
+    private const int VkShift = 0x10;
+    private const int VkControl = 0x11;
+    private const int VkMenu = 0x12;
+    private const int VkLeftShift = 0xA0;
+    private const int VkRightShift = 0xA1;
+    private const int VkLeftControl = 0xA2;
+    private const int VkRightControl = 0xA3;
+    private const int VkLeftMenu = 0xA4;
+    private const int VkRightMenu = 0xA5;
+    private readonly Func<int, short> getKeyState;
+
     private static readonly int[] TypingVirtualKeys =
     [
         0x08, // Backspace
@@ -19,29 +30,44 @@ public sealed class KeyboardTriggerReader
         0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF, 0xC0, 0xDB, 0xDC, 0xDD, 0xDE
     ];
 
+    public KeyboardTriggerReader()
+        : this(GetAsyncKeyState)
+    {
+    }
+
+    internal KeyboardTriggerReader(Func<int, short> getKeyState)
+    {
+        this.getKeyState = getKeyState;
+    }
+
     public bool IsPressed(TriggerKey triggerKey)
     {
-        int virtualKey = triggerKey switch
+        (int leftKey, int rightKey) = triggerKey switch
         {
-            TriggerKey.Control => 0x11,
-            TriggerKey.Shift => 0x10,
-            _ => 0x12
+            TriggerKey.Control => (VkLeftControl, VkRightControl),
+            TriggerKey.Shift => (VkLeftShift, VkRightShift),
+            _ => (VkLeftMenu, VkRightMenu)
         };
 
-        return (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
+        return IsKeyDown(leftKey) || IsKeyDown(rightKey);
     }
 
     public bool HasTypingActivity()
     {
         foreach (int virtualKey in TypingVirtualKeys)
         {
-            if ((GetAsyncKeyState(virtualKey) & 0x0001) != 0)
+            if ((getKeyState(virtualKey) & 0x0001) != 0)
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private bool IsKeyDown(int virtualKey)
+    {
+        return (getKeyState(virtualKey) & 0x8000) != 0;
     }
 
     [DllImport("user32.dll")]

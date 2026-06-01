@@ -1,10 +1,10 @@
-# HoverText：为低视力 Windows 用户带来 macOS Hover Text 式体验
+# HoverText：Windows 悬浮文字放大、文本读取与鼠标放大镜
 
 <div align="center">
 
 **macOS 有 Hover Text，Windows 也应该有。**
 
-HoverText 是一个面向视力障碍和低视力 Windows 用户的辅助工具：按住触发键，把鼠标下方看不清的文字放大成高对比度悬浮文字。
+HoverText 是一个面向视力障碍、低视力和小字阅读困难用户的本地 Windows 辅助工具。它把 Hover Text 式悬浮文字、Windows UI Automation 文本读取、可选 OCR 识别和鼠标跟随放大镜放在一个轻量托盘应用里，让用户不用切换到全屏放大镜也能读清屏幕内容。
 
 [English](README.md)
 
@@ -29,6 +29,7 @@ Windows 用户也需要类似的轻量帮助。HoverText 想补上这个空白�
 ## 它能做什么
 
 - 按住 `左 Alt` 读取鼠标下方文字；按住 `右 Alt` 启用放大镜模式
+- 可在 GDI 截图、Windows 原生 Magnification API、GPU / DirectX 桌面复制放大镜后端之间切换
 - 可选的 Hover Typing 输入放大模式：输入时把当前文本框内容显示成大号悬浮文字
 - 按 `Esc` 可临时隐藏输入放大，继续输入新内容后自动恢复
 - 在鼠标附近显示大字号、高对比度、置顶的悬浮文字窗口
@@ -46,6 +47,14 @@ Windows 用户也需要类似的轻量帮助。HoverText 想补上这个空白�
 - 长时间阅读密集屏幕内容的人
 - 需要临时放大局部文字，但不想开启全屏放大镜的人
 - 希望 Windows 拥有类似 Apple Hover Text 体验的人
+
+## 常见使用场景
+
+- Windows Hover Text 替代方案，适合从 macOS 转到 Windows 的用户
+- 低视力屏幕放大镜，用来阅读小号 UI 标签、提示文字、菜单和密集桌面应用
+- 鼠标指针附近文字放大，不需要修改全局显示缩放
+- 本地 Windows 文本读取工具，优先使用 UI Automation，并可用 OCR 兜底图片文字
+- 面向 Windows 10 / Windows 11 的轻量 WPF / .NET 辅助功能工具
 
 ## 快速运行
 

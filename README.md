@@ -1,10 +1,10 @@
-# HoverText: macOS Hover Text for Low-Vision Windows Users
+# HoverText: Windows Hover Text, Text Reader, and Cursor Magnifier for Low-Vision Users
 
 <div align="center">
 
 **macOS has Hover Text. Windows should too.**
 
-HoverText is an accessibility aid for visually impaired and low-vision users, bringing cursor-following, high-contrast floating text to Windows.
+HoverText is a local Windows accessibility app for visually impaired and low-vision users. It combines Hover Text-style reading, UI Automation text capture, optional OCR, and cursor-following magnification so small text stays readable without switching to a full-screen zoom workflow.
 
 [Read this in Chinese](README.zh-CN.md)
 
@@ -29,6 +29,7 @@ Windows users deserve the same kind of lightweight help. HoverText is built to f
 ## What it does
 
 - Hold `Left Alt` to read text under the cursor; hold `Right Alt` for magnifier mode
+- Choose between GDI screenshot, native Windows Magnification API, and GPU / DirectX desktop duplication magnifier backends
 - Optional Hover Typing mode shows the active text field in large floating text while you type
 - Press `Esc` to temporarily hide Hover Typing until the text changes again
 - Shows a large, high-contrast, always-on-top floating text window near the cursor
@@ -46,6 +47,14 @@ Windows users deserve the same kind of lightweight help. HoverText is built to f
 - People who spend long hours reading dense screens
 - Users who need quick local enlargement without turning on a full-screen magnifier
 - Anyone who wants an Apple Hover Text-like experience on Windows
+
+## Common use cases
+
+- Windows Hover Text alternative for people moving from macOS to Windows
+- Low-vision screen magnifier for small UI labels, tooltips, menus, and dense desktop apps
+- Cursor text magnifier for reading text near the mouse pointer without changing global display scaling
+- Local Windows text reader using UI Automation first, with optional OCR fallback for image-based text
+- Lightweight WPF / .NET accessibility utility for Windows 10 and Windows 11
 
 ## Run
 

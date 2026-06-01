@@ -44,7 +44,7 @@ public partial class App : System.Windows.Application
         var ocr = new CompositeTextProbeSource(
             new WindowsOcrTextProbeSource(),
             new TesseractCliOcrTextProbeSource());
-        var magnifier = new ScreenMagnifierFallback();
+        IMagnifierBackend magnifier = MagnifierBackendFactory.Create(settings);
         var pipeline = new TextProbePipeline(automation, ocr, magnifier);
 
         controller = new HoverTextController(

@@ -263,7 +263,7 @@
                                        Text="选择按住哪个键时显示悬浮文字。"
                                        Style="{StaticResource SectionDescription}"/>
                             <StackPanel Grid.Row="2" Orientation="Horizontal">
-                                <Button x:Name="AltButton" Content="Alt" Width="92" Margin="0,0,10,0" Click="TriggerButton_Click"/>
+                                <Button x:Name="AltButton" Content="Left Alt" Width="112" Margin="0,0,10,0" Click="TriggerButton_Click"/>
                                 <Button x:Name="ControlButton" Content="Ctrl" Width="92" Margin="0,0,10,0" Click="TriggerButton_Click"/>
                                 <Button x:Name="ShiftButton" Content="Shift" Width="92" Click="TriggerButton_Click"/>
                             </StackPanel>
@@ -273,6 +273,7 @@
                     <Border Style="{StaticResource SectionCard}">
                         <Grid>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -398,7 +399,16 @@
                                        Style="{StaticResource SectionDescription}"/>
                             <CheckBox x:Name="OcrBox" Grid.Row="2" Content="启用 OCR 兜底"/>
                             <CheckBox x:Name="MagnifierBox" Grid.Row="3" Content="启用放大镜模式"/>
-                            <CheckBox x:Name="HoverTypingBox" Grid.Row="4" Content="启用输入时大字显示"/>
+                            <ComboBox x:Name="MagnifierBackendBox"
+                                      Grid.Row="4"
+                                      MinHeight="38"
+                                      Margin="36,0,0,12"
+                                      SelectedValuePath="Tag">
+                                <ComboBoxItem Content="GDI 截图" Tag="GdiBitmap"/>
+                                <ComboBoxItem Content="Windows 原生" Tag="NativeWindows"/>
+                                <ComboBoxItem Content="GPU / DirectX" Tag="GpuDesktopDuplication"/>
+                            </ComboBox>
+                            <CheckBox x:Name="HoverTypingBox" Grid.Row="5" Content="启用输入时大字显示"/>
                         </Grid>
                     </Border>
 

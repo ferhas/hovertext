@@ -7,10 +7,19 @@ public sealed record MagnifierFrameState(PointerPoint Point, TimeSpan CapturedAt
 public static class MagnifierRefreshPolicy
 {
     public static readonly TimeSpan MaxReuseAge = TimeSpan.FromMilliseconds(650);
-    public const int MaxReuseDistancePixels = 48;
+    public const int MaxReuseDistancePixels = 8;
 
-    public static bool ShouldCapture(PointerPoint point, MagnifierFrameState? previous, TimeSpan now)
+    public static bool ShouldCapture(
+        PointerPoint point,
+        MagnifierFrameState? previous,
+        TimeSpan now,
+        bool canReuseCapturedFrame = true)
     {
+        if (!canReuseCapturedFrame)
+        {
+            return true;
+        }
+
         if (previous is null)
         {
             return true;

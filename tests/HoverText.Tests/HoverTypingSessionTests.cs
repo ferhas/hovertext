@@ -84,4 +84,42 @@ public sealed class HoverTypingSessionTests
         Assert.IsTrue(shownAgain.IsVisible);
         Assert.AreEqual("hello", shownAgain.Text);
     }
+
+    [TestMethod]
+    public void Evaluate_hides_when_focused_input_text_is_too_long()
+    {
+        var session = new HoverTypingSession();
+        HoverTextSettings settings = HoverTextSettings.CreateDefault() with
+        {
+            IsHoverTypingEnabled = true
+        };
+        string longText = new('a', InputTextDisplayPolicy.MaxDisplayCharacters + 1);
+        var snapshot = HoverTypingSnapshot.FromTextEntry(
+            "field-1",
+            longText,
+            new PixelRect(100, 200, 360, 42));
+
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, escapePressed: false);
+
+        Assert.IsFalse(display.IsVisible);
+    }
+
+    [TestMethod]
+    public void Evaluate_hides_when_focused_input_text_has_too_many_lines()
+    {
+        var session = new HoverTypingSession();
+        HoverTextSettings settings = HoverTextSettings.CreateDefault() with
+        {
+            IsHoverTypingEnabled = true
+        };
+        string manyLines = string.Join('\n', Enumerable.Range(0, InputTextDisplayPolicy.MaxDisplayLines + 1).Select(_ => "line"));
+        var snapshot = HoverTypingSnapshot.FromTextEntry(
+            "field-1",
+            manyLines,
+            new PixelRect(100, 200, 360, 42));
+
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, escapePressed: false);
+
+        Assert.IsFalse(display.IsVisible);
+    }
 }

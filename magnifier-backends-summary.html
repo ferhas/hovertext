@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HoverText 放大鏡後端總結</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f14;
+      --panel: #121923;
+      --line: #2d3948;
+      --text: #eef5ff;
+      --muted: #a8b6c7;
+      --green: #41d69d;
+      --blue: #58a6ff;
+      --gold: #f2c14e;
+      --rose: #ff7a90;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+      background: radial-gradient(circle at top left, #17212d, var(--bg) 42%);
+      color: var(--text);
+    }
+    main {
+      width: min(1120px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 38px 0 48px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(30px, 5vw, 54px);
+      letter-spacing: 0;
+    }
+    .lead {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: color-mix(in srgb, var(--panel), transparent 3%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 260px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+    .native .dot { background: var(--green); }
+    .gpu .dot { background: var(--gold); }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.58;
+      font-size: 15px;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .node {
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0d131b;
+      padding: 8px;
+    }
+    .arrow { color: var(--muted); }
+    .footer {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px 18px;
+      background: #0f151d;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    strong { color: var(--text); }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>HoverText 放大鏡後端</h1>
+    <p class="lead">設定裡現在可以切換三種模式：保守穩定的 GDI、接近 Windows 原生放大鏡的 Magnification API，以及走 DXGI Desktop Duplication 的 GPU/DirectX 擷取。</p>
+    <section class="grid">
+      <article class="card">
+        <div class="tag"><span class="dot"></span>Fallback</div>
+        <h2>GDI 截圖</h2>
+        <p>沿用原本路徑，透過 CopyFromScreen 擷取鼠標附近區域，再交給 WPF Image 放大顯示。相容性最高，是其他後端不可用時的兜底。</p>
+        <div class="flow">
+          <div class="node">GDI 截圖</div><div class="arrow">→</div><div class="node">BitmapSource</div><div class="arrow">→</div><div class="node">WPF 顯示</div>
+        </div>
+      </article>
+      <article class="card native">
+        <div class="tag"><span class="dot"></span>Native</div>
+        <h2>Windows 原生</h2>
+        <p>使用 Magnification.dll 建立 topmost Win32 放大鏡視窗，透過 MagSetWindowSource 更新源區域，讓系統的原生放大控制負責畫面。</p>
+        <div class="flow">
+          <div class="node">鼠標區域</div><div class="arrow">→</div><div class="node">MagSetWindowSource</div><div class="arrow">→</div><div class="node">原生放大鏡</div>
+        </div>
+      </article>
+      <article class="card gpu">
+        <div class="tag"><span class="dot"></span>GPU</div>
+        <h2>GPU / DirectX</h2>
+        <p>使用 DXGI Desktop Duplication 取得桌面幀，從 GPU 桌面表面裁切鼠標附近區域。DXGI 失敗或超時時，自動回退到 GDI。</p>
+        <div class="flow">
+          <div class="node">DXGI 幀</div><div class="arrow">→</div><div class="node">D3D11 裁切</div><div class="arrow">→</div><div class="node">WPF 顯示</div>
+        </div>
+      </article>
+    </section>
+    <div class="footer"><strong>驗證：</strong>全量測試 83 passed / 0 failed，Release build 0 warnings / 0 errors。設定會持久化後端選項，舊設定會自動使用 GDI 預設值。</div>
+  </main>
+</body>
+</html>

@@ -28,7 +28,7 @@ Windows users deserve the same kind of lightweight help. HoverText is built to f
 
 ## What it does
 
-- Hold a trigger key to read text under the cursor; the default trigger is `Alt`
+- Hold `Left Alt` to read text under the cursor; hold `Right Alt` for magnifier mode
 - Optional Hover Typing mode shows the active text field in large floating text while you type
 - Press `Esc` to temporarily hide Hover Typing until the text changes again
 - Shows a large, high-contrast, always-on-top floating text window near the cursor

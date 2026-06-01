@@ -29,6 +29,7 @@ public partial class OverlayWindow : Window
     private System.Windows.Media.Brush foregroundBrush = System.Windows.Media.Brushes.White;
     private System.Windows.Media.Brush backgroundBrush = System.Windows.Media.Brushes.Black;
     private PixelSize? lastMagnifierDisplaySize;
+    private PixelRect? lastCursorPlacement;
     private IntPtr windowHandle;
 
     public OverlayWindow()
@@ -73,7 +74,7 @@ public partial class OverlayWindow : Window
             lastLayoutFingerprint = layoutFingerprint;
         }
 
-        PositionNearCursor(cursor);
+        PositionNearCursor(cursor, result.DisplayKind == ProbeDisplayKind.Magnifier);
 
         SetInteractive(false);
         if (!IsVisible)
@@ -122,7 +123,7 @@ public partial class OverlayWindow : Window
         }
         else
         {
-            PositionNearCursor(fallbackCursor);
+            PositionNearCursor(fallbackCursor, smooth: false);
         }
 
         SetInteractive(false);
@@ -229,13 +230,17 @@ public partial class OverlayWindow : Window
         }
     }
 
-    private void PositionNearCursor(PointerPoint cursor)
+    private void PositionNearCursor(PointerPoint cursor, bool smooth)
     {
         Forms.Screen screen = Forms.Screen.FromPoint(new System.Drawing.Point(cursor.X, cursor.Y));
         System.Drawing.Rectangle area = screen.WorkingArea;
         var workArea = new PixelRect(area.Left, area.Top, area.Width, area.Height);
         var overlaySize = new PixelSize((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight));
-        PixelRect placement = OverlayPlacement.PlaceNearCursor(cursor, overlaySize, workArea, margin: 8, offset: 18);
+        PixelRect target = OverlayPlacement.PlaceNearCursor(cursor, overlaySize, workArea, margin: 8, offset: 18);
+        PixelRect placement = smooth && IsVisible
+            ? OverlayMotionSmoothing.MoveToward(lastCursorPlacement, target)
+            : target;
+        lastCursorPlacement = placement;
         Left = placement.Left;
         Top = placement.Top;
     }
@@ -251,6 +256,7 @@ public partial class OverlayWindow : Window
         var workArea = new PixelRect(area.Left, area.Top, area.Width, area.Height);
         var overlaySize = new PixelSize((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight));
         PixelRect placement = OverlayPlacement.PlaceNearAnchor(anchor, overlaySize, workArea, margin: 8, offset: 14);
+        lastCursorPlacement = null;
         Left = placement.Left;
         Top = placement.Top;
     }

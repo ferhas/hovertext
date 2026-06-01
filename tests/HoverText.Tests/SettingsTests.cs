@@ -15,6 +15,7 @@ public sealed class SettingsTests
         Assert.AreEqual(150, settings.PollIntervalMilliseconds);
         Assert.IsTrue(settings.IsOcrEnabled);
         Assert.IsTrue(settings.IsMagnifierEnabled);
+        Assert.AreEqual(MagnifierBackendKind.GdiBitmap, settings.MagnifierBackend);
         Assert.IsFalse(settings.StartWithWindows);
     }
 
@@ -38,6 +39,7 @@ public sealed class SettingsTests
             Background = "#1a1f2b",
             TriggerKey = TriggerKey.Control,
             IsOcrEnabled = false,
+            MagnifierBackend = MagnifierBackendKind.NativeWindows,
             StartWithWindows = true,
             PollIntervalMilliseconds = 100,
             IsHoverTypingEnabled = true
@@ -162,6 +164,66 @@ public sealed class SettingsTests
             HoverTextSettings loaded = await store.LoadAsync();
 
             Assert.IsFalse(loaded.IsMagnifierEnabled);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task JsonSettingsStore_uses_gdi_magnifier_for_legacy_settings_without_backend()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        const string legacyJson = """
+            {
+              "TriggerKey": 0,
+              "FontSize": 56,
+              "Foreground": "#f8fafc",
+              "Background": "#111827",
+              "PollIntervalMilliseconds": 150,
+              "IsOcrEnabled": true,
+              "IsMagnifierEnabled": true,
+              "StartWithWindows": false
+            }
+            """;
+        var store = new JsonSettingsStore(path);
+
+        try
+        {
+            await File.WriteAllTextAsync(path, legacyJson);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.AreEqual(MagnifierBackendKind.GdiBitmap, loaded.MagnifierBackend);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task JsonSettingsStore_preserves_gpu_magnifier_backend()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"hovertext-{Guid.NewGuid():N}.json");
+        var store = new JsonSettingsStore(path);
+        var settings = HoverTextSettings.CreateDefault() with
+        {
+            MagnifierBackend = MagnifierBackendKind.GpuDesktopDuplication
+        };
+
+        try
+        {
+            await store.SaveAsync(settings);
+            HoverTextSettings loaded = await store.LoadAsync();
+
+            Assert.AreEqual(MagnifierBackendKind.GpuDesktopDuplication, loaded.MagnifierBackend);
         }
         finally
         {

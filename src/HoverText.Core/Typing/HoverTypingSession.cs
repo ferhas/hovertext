@@ -19,7 +19,7 @@ public sealed class HoverTypingSession
         }
 
         string text = snapshot.Text.TrimEnd('\r', '\n');
-        if (string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text) || !InputTextDisplayPolicy.ShouldDisplay(text))
         {
             if (string.Equals(suppressedFocusKey, snapshot.FocusKey, StringComparison.Ordinal)
                 && !string.Equals(suppressedText, text, StringComparison.Ordinal))

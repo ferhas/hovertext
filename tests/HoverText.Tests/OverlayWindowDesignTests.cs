@@ -1,23 +1,22 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using HoverText.App.Ui;
-using HoverText.Core.Platform;
-using HoverText.Core.Settings;
 
 namespace HoverText.Tests;
 
 [TestClass]
-public sealed class SettingsWindowDesignTests
+public sealed class OverlayWindowDesignTests
 {
     [TestMethod]
-    public void Settings_window_groups_options_into_polished_sections()
+    public void Overlay_body_text_uses_regular_weight()
     {
         Exception? threadException = null;
         var thread = new Thread(() =>
         {
             try
             {
-                AssertSettingsWindowSections();
+                AssertOverlayBodyTextWeight();
             }
             catch (Exception ex)
             {
@@ -35,29 +34,16 @@ public sealed class SettingsWindowDesignTests
         }
     }
 
-    private static void AssertSettingsWindowSections()
+    private static void AssertOverlayBodyTextWeight()
     {
-        var window = new SettingsWindow(
-            HoverTextSettings.CreateDefault(),
-            _ => Task.CompletedTask,
-            StartupUiPolicy.CreateDefault());
+        var window = new OverlayWindow();
 
         try
         {
-            string[] textBlocks = FindChildren<TextBlock>(window)
-                .Select(textBlock => textBlock.Text)
-                .ToArray();
+            TextBlock displayText = FindChildren<TextBlock>(window)
+                .Single(textBlock => textBlock.Name == "DisplayText");
 
-            CollectionAssert.IsSubsetOf(
-                new[] { "快捷触发", "显示外观", "识别能力", "系统偏好" },
-                textBlocks);
-            string[] comboItems = FindChildren<ComboBoxItem>(window)
-                .Select(item => item.Content?.ToString() ?? string.Empty)
-                .ToArray();
-
-            CollectionAssert.IsSubsetOf(
-                new[] { "GDI 截图", "Windows 原生", "GPU / DirectX" },
-                comboItems);
+            Assert.AreEqual(FontWeights.Normal, displayText.FontWeight);
         }
         finally
         {

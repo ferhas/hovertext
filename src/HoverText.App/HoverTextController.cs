@@ -15,7 +15,7 @@ public sealed class HoverTextController : IDisposable
     private readonly TextProbePipeline pipeline;
     private readonly IHoverTypingProbeSource hoverTypingProbe;
     private readonly HoverTypingSession hoverTypingSession = new();
-    private readonly ScreenMagnifierFallback magnifier;
+    private IMagnifierBackend magnifier;
     private readonly KeyboardTriggerReader triggerReader;
     private readonly CursorPositionProvider cursorProvider;
     private readonly DispatcherTimer timer;
@@ -29,7 +29,7 @@ public sealed class HoverTextController : IDisposable
         OverlayWindow overlayWindow,
         TextProbePipeline pipeline,
         IHoverTypingProbeSource hoverTypingProbe,
-        ScreenMagnifierFallback magnifier,
+        IMagnifierBackend magnifier,
         KeyboardTriggerReader triggerReader,
         CursorPositionProvider cursorProvider,
         HoverTextSettings settings)
@@ -57,6 +57,14 @@ public sealed class HoverTextController : IDisposable
     {
         settings = updatedSettings;
         timer.Interval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds);
+        if (magnifier.Kind != settings.MagnifierBackend)
+        {
+            magnifier.Dispose();
+            magnifier = MagnifierBackendFactory.Create(settings);
+            pipeline.SetMagnifier(magnifier);
+            ClearMagnifierCache();
+        }
+
         if (!settings.IsMagnifierEnabled)
         {
             ClearMagnifierCache();
@@ -68,6 +76,7 @@ public sealed class HoverTextController : IDisposable
     {
         timer.Stop();
         timer.Tick -= OnTick;
+        magnifier.Dispose();
         overlayWindow.Close();
     }
 
@@ -82,7 +91,10 @@ public sealed class HoverTextController : IDisposable
         try
         {
             PointerPoint point = cursorProvider.GetCursorPosition();
-            if (!triggerReader.IsPressed(settings.TriggerKey))
+            bool magnifierPressed = triggerReader.IsMagnifierPressed();
+            UpdateTimerInterval(magnifierPressed);
+            bool hoverTextPressed = triggerReader.IsPressed(settings.TriggerKey);
+            if (!magnifierPressed && !hoverTextPressed)
             {
                 ClearMagnifierCache();
                 if (settings.IsHoverTypingEnabled)
@@ -103,33 +115,21 @@ public sealed class HoverTextController : IDisposable
                 return;
             }
 
-            if (settings.IsMagnifierEnabled
-                && cachedMagnifierResult is not null
-                && cachedMagnifierFrame is not null
-                && !MagnifierRefreshPolicy.ShouldCapture(point, cachedMagnifierFrame, ElapsedSinceStart()))
+            if (magnifierPressed)
             {
-                overlayWindow.ShowProbeResult(cachedMagnifierResult, settings, point, magnifier.LastCapture);
+                await ShowMagnifierAsync(point);
                 return;
             }
 
-            ProbeResult result = await pipeline.ProbeAsync(point, settings);
-            if (result.DisplayKind == ProbeDisplayKind.Magnifier)
-            {
-                cachedMagnifierResult = result;
-                cachedMagnifierFrame = new MagnifierFrameState(point, ElapsedSinceStart());
-            }
-            else
-            {
-                ClearMagnifierCache();
-            }
-
+            ClearMagnifierCache();
+            ProbeResult result = await pipeline.ProbeTextAsync(point, settings);
             if (result.DisplayKind == ProbeDisplayKind.Empty || result.Source == ProbeSource.None)
             {
                 overlayWindow.Hide();
                 return;
             }
 
-            overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
+            overlayWindow.ShowProbeResult(result, settings, point, null);
         }
         catch
         {
@@ -142,10 +142,73 @@ public sealed class HoverTextController : IDisposable
         }
     }
 
+    private async Task ShowMagnifierAsync(PointerPoint point)
+    {
+        if (settings.IsMagnifierEnabled
+                && cachedMagnifierResult is not null
+                && cachedMagnifierFrame is not null
+                && !MagnifierRefreshPolicy.ShouldCapture(
+                    point,
+                    cachedMagnifierFrame,
+                    ElapsedSinceStart(),
+                    magnifier.CanReuseCapture))
+        {
+            if (magnifier.UsesExternalWindow && cachedMagnifierResult.Magnifier is not null)
+            {
+                overlayWindow.Hide();
+                magnifier.ShowExternal(point, cachedMagnifierResult.Magnifier, settings);
+                return;
+            }
+
+            magnifier.HideExternal();
+            overlayWindow.ShowProbeResult(cachedMagnifierResult, settings, point, magnifier.LastCapture);
+            return;
+        }
+
+        ProbeResult result = await pipeline.CaptureMagnifierAsync(point, settings);
+        if (result.DisplayKind == ProbeDisplayKind.Magnifier)
+        {
+            cachedMagnifierResult = result;
+            cachedMagnifierFrame = new MagnifierFrameState(point, ElapsedSinceStart());
+        }
+        else
+        {
+            ClearMagnifierCache();
+        }
+
+        if (result.DisplayKind == ProbeDisplayKind.Empty || result.Source == ProbeSource.None)
+        {
+            overlayWindow.Hide();
+            magnifier.HideExternal();
+            return;
+        }
+
+        if (magnifier.UsesExternalWindow && result.Magnifier is not null)
+        {
+            overlayWindow.Hide();
+            magnifier.ShowExternal(point, result.Magnifier, settings);
+            return;
+        }
+
+        magnifier.HideExternal();
+        overlayWindow.ShowProbeResult(result, settings, point, magnifier.LastCapture);
+    }
+
     private void ClearMagnifierCache()
     {
         cachedMagnifierResult = null;
         cachedMagnifierFrame = null;
+        magnifier.HideExternal();
+    }
+
+    private void UpdateTimerInterval(bool magnifierPressed)
+    {
+        TimeSpan configuredInterval = TimeSpan.FromMilliseconds(settings.PollIntervalMilliseconds);
+        TimeSpan interval = MagnifierPollingPolicy.GetInterval(configuredInterval, magnifierPressed);
+        if (timer.Interval != interval)
+        {
+            timer.Interval = interval;
+        }
     }
 
     private TimeSpan ElapsedSinceStart()

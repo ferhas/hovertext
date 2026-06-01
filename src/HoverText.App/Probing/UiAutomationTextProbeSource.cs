@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Automation.Text;
 using HoverText.Core.Overlay;
 using HoverText.Core.Probing;
+using HoverText.Core.Typing;
 
 namespace HoverText.App.Probing;
 
@@ -37,7 +38,7 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource
 
         bool isInput = IsInputElement(element);
         ProbeTextSelection selection = isInput
-            ? ProbeTextSelection.ForText(TryReadInputText(element))
+            ? TryReadInputSelection(element)
             : TryReadNonInputText(element, point);
         PixelRect? anchorBounds = TryGetBounds(element);
 
@@ -84,6 +85,14 @@ public sealed class UiAutomationTextProbeSource : ITextProbeSource
         return TryReadValuePattern(element, allowEmpty: true)
             ?? TryReadFullTextPattern(element)
             ?? string.Empty;
+    }
+
+    private static ProbeTextSelection TryReadInputSelection(AutomationElement element)
+    {
+        string text = TryReadInputText(element);
+        return InputTextDisplayPolicy.ShouldDisplay(text)
+            ? ProbeTextSelection.ForText(text)
+            : ProbeTextSelection.ForText(string.Empty);
     }
 
     private static string? TryReadFullTextPattern(AutomationElement element)

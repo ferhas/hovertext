@@ -5,27 +5,30 @@ using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using HoverText.Core.Overlay;
 using HoverText.Core.Probing;
+using HoverText.Core.Settings;
 
 namespace HoverText.App.Probing;
 
-public sealed class ScreenMagnifierFallback : IMagnifierFallback
+public sealed class ScreenMagnifierFallback : IMagnifierBackend
 {
-    private const int CaptureWidth = 240;
-    private const int CaptureHeight = 140;
-
     public BitmapSource? LastCapture { get; private set; }
+
+    public MagnifierBackendKind Kind => MagnifierBackendKind.GdiBitmap;
+
+    public bool UsesExternalWindow => false;
+
+    public bool CanReuseCapture => true;
 
     public Task<MagnifierResult> CaptureAsync(PointerPoint point, CancellationToken cancellationToken = default)
     {
         try
         {
-            int x = Math.Max(0, point.X - CaptureWidth / 2);
-            int y = Math.Max(0, point.Y - CaptureHeight / 2);
-            using var bitmap = new Bitmap(CaptureWidth, CaptureHeight, PixelFormat.Format32bppArgb);
+            PixelRect captureArea = MagnifierCaptureArea.FromPointer(point);
+            using var bitmap = new Bitmap(captureArea.Width, captureArea.Height, PixelFormat.Format32bppArgb);
             using Graphics graphics = Graphics.FromImage(bitmap);
-            graphics.CopyFromScreen(x, y, 0, 0, new Size(CaptureWidth, CaptureHeight));
+            graphics.CopyFromScreen(captureArea.Left, captureArea.Top, 0, 0, new Size(captureArea.Width, captureArea.Height));
             LastCapture = ToBitmapSource(bitmap);
-            return Task.FromResult(MagnifierResult.Captured(new PixelRect(x, y, CaptureWidth, CaptureHeight), MagnifierDefaults.Scale));
+            return Task.FromResult(MagnifierResult.Captured(captureArea, MagnifierDefaults.Scale));
         }
         catch
         {
@@ -55,4 +58,17 @@ public sealed class ScreenMagnifierFallback : IMagnifierFallback
 
     [DllImport("gdi32.dll")]
     private static extern bool DeleteObject(IntPtr objectHandle);
+
+    public void Dispose()
+    {
+        LastCapture = null;
+    }
+
+    public void ShowExternal(PointerPoint cursor, MagnifierResult result, HoverTextSettings settings)
+    {
+    }
+
+    public void HideExternal()
+    {
+    }
 }

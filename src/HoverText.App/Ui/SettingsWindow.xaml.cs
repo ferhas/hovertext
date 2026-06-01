@@ -31,6 +31,7 @@ public partial class SettingsWindow : Window
         BackgroundBox.Text = value.Background;
         OcrBox.IsChecked = value.IsOcrEnabled;
         MagnifierBox.IsChecked = value.IsMagnifierEnabled;
+        MagnifierBackendBox.SelectedValue = value.MagnifierBackend.ToString();
         HoverTypingBox.IsChecked = value.IsHoverTypingEnabled;
         StartupBox.IsChecked = value.StartWithWindows;
         UpdateSliderLabels();
@@ -48,6 +49,7 @@ public partial class SettingsWindow : Window
             Background = BackgroundBox.Text,
             IsOcrEnabled = OcrBox.IsChecked == true,
             IsMagnifierEnabled = MagnifierBox.IsChecked == true,
+            MagnifierBackend = ReadMagnifierBackend(),
             IsHoverTypingEnabled = HoverTypingBox.IsChecked == true,
             StartWithWindows = StartupBox.IsChecked == true
         };
@@ -143,6 +145,14 @@ public partial class SettingsWindow : Window
         SetTriggerButtonState(AltButton, selectedTriggerKey == TriggerKey.Alt);
         SetTriggerButtonState(ControlButton, selectedTriggerKey == TriggerKey.Control);
         SetTriggerButtonState(ShiftButton, selectedTriggerKey == TriggerKey.Shift);
+    }
+
+    private MagnifierBackendKind ReadMagnifierBackend()
+    {
+        string? value = MagnifierBackendBox.SelectedValue?.ToString();
+        return Enum.TryParse(value, out MagnifierBackendKind backend)
+            ? backend
+            : MagnifierBackendKind.GdiBitmap;
     }
 
     private static void SetTriggerButtonState(System.Windows.Controls.Button button, bool isSelected)

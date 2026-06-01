@@ -39,7 +39,7 @@
                    Visibility="Collapsed"/>
             <TextBlock x:Name="DisplayText"
                        FontFamily="Segoe UI"
-                       FontWeight="SemiBold"
+                       FontWeight="Normal"
                        TextWrapping="Wrap"/>
         </StackPanel>
     </Border>

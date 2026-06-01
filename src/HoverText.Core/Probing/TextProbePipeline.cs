@@ -9,7 +9,28 @@ public sealed class TextProbePipeline(
     IMagnifierFallback magnifier,
     Func<Task>? beforeMagnifierCaptureAsync = null)
 {
+    private IMagnifierFallback magnifier = magnifier;
+
+    public void SetMagnifier(IMagnifierFallback updatedMagnifier)
+    {
+        magnifier = updatedMagnifier;
+    }
+
     public async Task<ProbeResult> ProbeAsync(
+        PointerPoint point,
+        HoverTextSettings settings,
+        CancellationToken cancellationToken = default)
+    {
+        ProbeResult textResult = await ProbeTextAsync(point, settings, cancellationToken);
+        if (textResult.DisplayKind != ProbeDisplayKind.Empty)
+        {
+            return textResult;
+        }
+
+        return await CaptureMagnifierAsync(point, settings, cancellationToken);
+    }
+
+    public async Task<ProbeResult> ProbeTextAsync(
         PointerPoint point,
         HoverTextSettings settings,
         CancellationToken cancellationToken = default)
@@ -29,6 +50,14 @@ public sealed class TextProbePipeline(
             }
         }
 
+        return ProbeResult.Empty();
+    }
+
+    public async Task<ProbeResult> CaptureMagnifierAsync(
+        PointerPoint point,
+        HoverTextSettings settings,
+        CancellationToken cancellationToken = default)
+    {
         if (!settings.IsMagnifierEnabled)
         {
             return ProbeResult.Empty();

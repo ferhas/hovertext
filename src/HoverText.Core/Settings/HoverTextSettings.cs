@@ -7,6 +7,13 @@ public enum TriggerKey
     Shift
 }
 
+public enum MagnifierBackendKind
+{
+    GdiBitmap,
+    NativeWindows,
+    GpuDesktopDuplication
+}
+
 public sealed record HoverTextSettings
 {
     public const int MinimumFontSize = 40;
@@ -25,6 +32,8 @@ public sealed record HoverTextSettings
 
     public bool IsMagnifierEnabled { get; init; }
 
+    public MagnifierBackendKind MagnifierBackend { get; init; }
+
     public bool IsHoverTypingEnabled { get; init; }
 
     public bool StartWithWindows { get; init; }
@@ -40,6 +49,7 @@ public sealed record HoverTextSettings
             PollIntervalMilliseconds = 150,
             IsOcrEnabled = true,
             IsMagnifierEnabled = true,
+            MagnifierBackend = MagnifierBackendKind.GdiBitmap,
             IsHoverTypingEnabled = false,
             StartWithWindows = false
         };

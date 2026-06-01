@@ -29,14 +29,18 @@ public sealed class KeyboardTriggerReader
 
     public bool IsPressed(TriggerKey triggerKey)
     {
-        (int leftKey, int rightKey) = triggerKey switch
+        return triggerKey switch
         {
-            TriggerKey.Control => (VkLeftControl, VkRightControl),
-            TriggerKey.Shift => (VkLeftShift, VkRightShift),
-            _ => (VkLeftMenu, VkRightMenu)
+            TriggerKey.Alt => IsKeyDown(VkLeftMenu),
+            TriggerKey.Control => IsKeyDown(VkLeftControl) || IsKeyDown(VkRightControl),
+            TriggerKey.Shift => IsKeyDown(VkLeftShift) || IsKeyDown(VkRightShift),
+            _ => false
         };
+    }
 
-        return IsKeyDown(leftKey) || IsKeyDown(rightKey);
+    public bool IsMagnifierPressed()
+    {
+        return IsKeyDown(VkRightMenu);
     }
 
     public bool IsEscapePressed()

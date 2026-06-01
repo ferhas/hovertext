@@ -145,6 +145,40 @@ public sealed class TextProbePipelineTests
         Assert.AreEqual(0, magnifier.Calls);
     }
 
+    [TestMethod]
+    public async Task ProbeTextAsync_returns_empty_without_falling_back_to_magnifier()
+    {
+        var automation = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.UiAutomation));
+        var ocr = new RecordingTextProbeSource(TextProbeResult.None(ProbeSource.Ocr));
+        var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 2.0));
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
+
+        ProbeResult result = await pipeline.ProbeTextAsync(new PointerPoint(32, 64), HoverTextSettings.CreateDefault());
+
+        Assert.AreEqual(ProbeSource.None, result.Source);
+        Assert.AreEqual(ProbeDisplayKind.Empty, result.DisplayKind);
+        Assert.AreEqual(1, automation.Calls);
+        Assert.AreEqual(1, ocr.Calls);
+        Assert.AreEqual(0, magnifier.Calls);
+    }
+
+    [TestMethod]
+    public async Task CaptureMagnifierAsync_skips_text_sources_and_returns_magnifier()
+    {
+        var automation = new RecordingTextProbeSource(TextProbeResult.Found("Readable", ProbeSource.UiAutomation));
+        var ocr = new RecordingTextProbeSource(TextProbeResult.Found("OCR text", ProbeSource.Ocr));
+        var magnifier = new RecordingMagnifierFallback(MagnifierResult.Captured(new PixelRect(20, 24, 200, 140), 2.0));
+        var pipeline = new TextProbePipeline(automation, ocr, magnifier);
+
+        ProbeResult result = await pipeline.CaptureMagnifierAsync(new PointerPoint(32, 64), HoverTextSettings.CreateDefault());
+
+        Assert.AreEqual(ProbeSource.Magnifier, result.Source);
+        Assert.AreEqual(ProbeDisplayKind.Magnifier, result.DisplayKind);
+        Assert.AreEqual(0, automation.Calls);
+        Assert.AreEqual(0, ocr.Calls);
+        Assert.AreEqual(1, magnifier.Calls);
+    }
+
     private sealed class RecordingTextProbeSource(TextProbeResult result) : ITextProbeSource
     {
         public int Calls { get; private set; }

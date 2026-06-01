@@ -48,6 +48,12 @@ public sealed class JsonSettingsStore(string path)
             settings = settings with { IsMagnifierEnabled = defaults.IsMagnifierEnabled };
         }
 
+        if (!propertyNames.Contains(nameof(HoverTextSettings.MagnifierBackend))
+            || !Enum.IsDefined(settings.MagnifierBackend))
+        {
+            settings = settings with { MagnifierBackend = defaults.MagnifierBackend };
+        }
+
         return settings;
     }
 

@@ -97,20 +97,6 @@ public sealed class HoverTextController : IDisposable
             if (!magnifierPressed && !hoverTextPressed)
             {
                 ClearMagnifierCache();
-                if (settings.IsHoverTypingEnabled)
-                {
-                    HoverTypingSnapshot snapshot = await hoverTypingProbe.ReadAsync();
-                    HoverTypingDisplay display = hoverTypingSession.Evaluate(
-                        settings,
-                        snapshot,
-                        triggerReader.IsEscapePressed());
-                    if (display.IsVisible)
-                    {
-                        overlayWindow.ShowHoverTypingDisplay(display, settings, point);
-                        return;
-                    }
-                }
-
                 overlayWindow.Hide();
                 return;
             }
@@ -122,6 +108,21 @@ public sealed class HoverTextController : IDisposable
             }
 
             ClearMagnifierCache();
+            if (settings.IsHoverTypingEnabled)
+            {
+                HoverTypingSnapshot snapshot = await hoverTypingProbe.ReadAsync();
+                HoverTypingDisplay display = hoverTypingSession.Evaluate(
+                    settings,
+                    snapshot,
+                    isTriggerPressed: hoverTextPressed,
+                    escapePressed: triggerReader.IsEscapePressed());
+                if (display.IsVisible)
+                {
+                    overlayWindow.ShowHoverTypingDisplay(display, settings, point);
+                    return;
+                }
+            }
+
             ProbeResult result = await pipeline.ProbeTextAsync(point, settings);
             if (result.DisplayKind == ProbeDisplayKind.Empty || result.Source == ProbeSource.None)
             {

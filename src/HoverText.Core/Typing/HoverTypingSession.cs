@@ -10,11 +10,17 @@ public sealed class HoverTypingSession
     public HoverTypingDisplay Evaluate(
         HoverTextSettings settings,
         HoverTypingSnapshot snapshot,
+        bool isTriggerPressed,
         bool escapePressed)
     {
         if (!settings.IsHoverTypingEnabled || !snapshot.HasTextEntry || string.IsNullOrEmpty(snapshot.FocusKey))
         {
             ClearSuppression();
+            return HoverTypingDisplay.Hidden();
+        }
+
+        if (!isTriggerPressed)
+        {
             return HoverTypingDisplay.Hidden();
         }
 

@@ -20,7 +20,7 @@ public sealed class HoverTypingSessionTests
             "hello",
             new PixelRect(100, 200, 360, 42));
 
-        HoverTypingDisplay display = session.Evaluate(settings, snapshot, escapePressed: false);
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, isTriggerPressed: true, escapePressed: false);
 
         Assert.IsFalse(display.IsVisible);
     }
@@ -36,11 +36,29 @@ public sealed class HoverTypingSessionTests
         var anchor = new PixelRect(100, 200, 360, 42);
         var snapshot = HoverTypingSnapshot.FromTextEntry("field-1", "hello", anchor);
 
-        HoverTypingDisplay display = session.Evaluate(settings, snapshot, escapePressed: false);
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, isTriggerPressed: true, escapePressed: false);
 
         Assert.IsTrue(display.IsVisible);
         Assert.AreEqual("hello", display.Text);
         Assert.AreEqual(anchor, display.AnchorBounds);
+    }
+
+    [TestMethod]
+    public void Evaluate_hides_focused_editable_text_until_the_trigger_key_is_pressed()
+    {
+        var session = new HoverTypingSession();
+        HoverTextSettings settings = HoverTextSettings.CreateDefault() with
+        {
+            IsHoverTypingEnabled = true
+        };
+        var snapshot = HoverTypingSnapshot.FromTextEntry(
+            "field-1",
+            "hello",
+            new PixelRect(100, 200, 360, 42));
+
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, isTriggerPressed: false, escapePressed: false);
+
+        Assert.IsFalse(display.IsVisible);
     }
 
     [TestMethod]
@@ -55,9 +73,9 @@ public sealed class HoverTypingSessionTests
         var first = HoverTypingSnapshot.FromTextEntry("field-1", "hello", anchor);
         var updated = HoverTypingSnapshot.FromTextEntry("field-1", "hello!", anchor);
 
-        HoverTypingDisplay hidden = session.Evaluate(settings, first, escapePressed: true);
-        HoverTypingDisplay stillHidden = session.Evaluate(settings, first, escapePressed: false);
-        HoverTypingDisplay shownAgain = session.Evaluate(settings, updated, escapePressed: false);
+        HoverTypingDisplay hidden = session.Evaluate(settings, first, isTriggerPressed: true, escapePressed: true);
+        HoverTypingDisplay stillHidden = session.Evaluate(settings, first, isTriggerPressed: true, escapePressed: false);
+        HoverTypingDisplay shownAgain = session.Evaluate(settings, updated, isTriggerPressed: true, escapePressed: false);
 
         Assert.IsFalse(hidden.IsVisible);
         Assert.IsFalse(stillHidden.IsVisible);
@@ -77,9 +95,9 @@ public sealed class HoverTypingSessionTests
         var first = HoverTypingSnapshot.FromTextEntry("field-1", "hello", anchor);
         var empty = HoverTypingSnapshot.FromTextEntry("field-1", string.Empty, anchor);
 
-        _ = session.Evaluate(settings, first, escapePressed: true);
-        _ = session.Evaluate(settings, empty, escapePressed: false);
-        HoverTypingDisplay shownAgain = session.Evaluate(settings, first, escapePressed: false);
+        _ = session.Evaluate(settings, first, isTriggerPressed: true, escapePressed: true);
+        _ = session.Evaluate(settings, empty, isTriggerPressed: true, escapePressed: false);
+        HoverTypingDisplay shownAgain = session.Evaluate(settings, first, isTriggerPressed: true, escapePressed: false);
 
         Assert.IsTrue(shownAgain.IsVisible);
         Assert.AreEqual("hello", shownAgain.Text);
@@ -99,7 +117,7 @@ public sealed class HoverTypingSessionTests
             longText,
             new PixelRect(100, 200, 360, 42));
 
-        HoverTypingDisplay display = session.Evaluate(settings, snapshot, escapePressed: false);
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, isTriggerPressed: true, escapePressed: false);
 
         Assert.IsFalse(display.IsVisible);
     }
@@ -118,7 +136,7 @@ public sealed class HoverTypingSessionTests
             manyLines,
             new PixelRect(100, 200, 360, 42));
 
-        HoverTypingDisplay display = session.Evaluate(settings, snapshot, escapePressed: false);
+        HoverTypingDisplay display = session.Evaluate(settings, snapshot, isTriggerPressed: true, escapePressed: false);
 
         Assert.IsFalse(display.IsVisible);
     }
